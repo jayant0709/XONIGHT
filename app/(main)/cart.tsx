@@ -247,7 +247,7 @@ const CartScreen = () => {
                 {item.product.attributes?.brand || "Unknown Brand"}
               </Text>
               <Text style={styles.productPrice}>
-                ${item.product.price.toFixed(2)}
+                ₹{item.product.price.toFixed(2)}
               </Text>
 
               <View style={styles.quantityContainer}>
@@ -275,7 +275,7 @@ const CartScreen = () => {
 
             <View style={styles.itemActions}>
               <Text style={styles.itemTotal}>
-                ${(item.product.price * item.quantity).toFixed(2)}
+                ₹{(item.product.price * item.quantity).toFixed(2)}
               </Text>
               <TouchableOpacity
                 style={styles.removeButton}
@@ -293,7 +293,7 @@ const CartScreen = () => {
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Items ({state.totalItems})</Text>
           <Text style={styles.summaryValue}>
-            ${state.totalPrice.toFixed(2)}
+            ₹{state.totalPrice.toFixed(2)}
           </Text>
         </View>
 
@@ -304,7 +304,7 @@ const CartScreen = () => {
 
         <View style={[styles.summaryRow, styles.totalRow]}>
           <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>${state.totalPrice.toFixed(2)}</Text>
+          <Text style={styles.totalValue}>₹{state.totalPrice.toFixed(2)}</Text>
         </View>
 
         <LinearGradient

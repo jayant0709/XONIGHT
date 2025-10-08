@@ -424,7 +424,7 @@ const HomeScreen = () => {
                 {product.brand || product.attributes?.brand || "Unknown Brand"}
               </Text>
               <Text style={styles.productPrice}>
-                ${product.price.toFixed(2)}
+                ₹{product.price.toFixed(2)}
               </Text>
               <LinearGradient
                 colors={theme.gradients.brand}

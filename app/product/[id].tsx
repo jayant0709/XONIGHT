@@ -256,7 +256,7 @@ const ProductDetailScreen = () => {
             <Text style={styles.productBrand}>
               {product.brand || product.attributes?.brand || "Unknown Brand"}
             </Text>
-            <Text style={styles.productPrice}>${product.price.toFixed(2)}</Text>
+            <Text style={styles.productPrice}>₹{product.price.toFixed(2)}</Text>
           </View>
 
           <View style={styles.productMeta}>
