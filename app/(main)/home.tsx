@@ -52,7 +52,7 @@ interface Promotion {
 
 const HomeScreen = () => {
   const { user, logout } = useAuth();
-  const { addToCart, state: cartState } = useCart();
+  const { addToCart, state: cartState, refreshCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -162,13 +162,19 @@ const HomeScreen = () => {
     }
   };
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = async (product: Product) => {
     addToCart(product);
     Toast.show({
       type: "success",
       text1: "Added to Cart",
       text2: `${product.name} has been added to your cart.`,
     });
+
+    // Refresh cart after a brief delay to ensure sync
+    setTimeout(() => {
+      console.log("🔄 [HomeScreen] Refreshing cart after add to cart");
+      refreshCart();
+    }, 1000);
   };
 
   const handleToggleWishlist = (product: Product) => {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -7,16 +7,77 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect } from "@react-navigation/native";
 import { useCart } from "../../src/contexts/CartContext";
 import Toast from "react-native-toast-message";
 import theme from "../../src/constants/theme";
 
 const CartScreen = () => {
-  const { state, removeFromCart, updateQuantity, clearCart } = useCart();
+  const cartContext = useCart();
+  const { state, removeFromCart, updateQuantity, clearCart, refreshCart } =
+    cartContext;
+  const [refreshing, setRefreshing] = useState(false);
+  const [isScreenFocused, setIsScreenFocused] = useState(false);
+
+  // Auto-refresh cart every 15 seconds (only when screen is focused)
+  useEffect(() => {
+    if (!isScreenFocused) return;
+
+    console.log("🔄 [CartScreen] Setting up auto-refresh timer");
+    const interval = setInterval(async () => {
+      console.log("⏰ [CartScreen] Auto-refreshing cart...");
+      if (refreshCart) {
+        await refreshCart();
+      }
+    }, 15000); // 15 seconds
+
+    return () => {
+      console.log("🛑 [CartScreen] Clearing auto-refresh timer");
+      clearInterval(interval);
+    };
+  }, [isScreenFocused, refreshCart]);
+
+  // Handle screen focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log("👀 [CartScreen] Screen focused");
+      setIsScreenFocused(true);
+
+      // Refresh immediately on focus
+      if (refreshCart) {
+        refreshCart();
+      }
+
+      return () => {
+        console.log("👋 [CartScreen] Screen unfocused");
+        setIsScreenFocused(false);
+      };
+    }, [refreshCart])
+  );
+
+  // Debug cart state changes
+  useEffect(() => {
+    console.log("🛒 [CartScreen] Cart state updated:", {
+      itemCount: state.items.length,
+      totalItems: state.totalItems,
+      totalPrice: state.totalPrice,
+      isLoading: state.isLoading,
+    });
+  }, [state]);
+
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    console.log("👆 [CartScreen] Pull-to-refresh triggered");
+    setRefreshing(true);
+    refreshCart();
+    // Give it a moment to complete
+    setTimeout(() => setRefreshing(false), 1000);
+  }, [refreshCart]);
 
   const handleRemoveFromCart = (productId: string, productName: string) => {
     Alert.alert("Remove Item", `Remove ${productName} from your cart?`, [
@@ -88,7 +149,17 @@ const CartScreen = () => {
         >
           <Text style={styles.title}>Shopping Cart</Text>
         </LinearGradient>
-        <View style={styles.emptyContainer}>
+        <ScrollView
+          contentContainerStyle={styles.emptyContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={theme.colors.primary[500]}
+              colors={[theme.colors.primary[500], theme.colors.purple[500]]}
+            />
+          }
+        >
           <LinearGradient
             colors={[theme.colors.gray[100], theme.colors.gray[50]]}
             style={styles.emptyIconContainer}
@@ -103,7 +174,8 @@ const CartScreen = () => {
           <Text style={styles.emptySubtitle}>
             Add some products to get started shopping
           </Text>
-        </View>
+          <Text style={styles.pullToRefreshHint}>Pull down to refresh</Text>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -117,12 +189,31 @@ const CartScreen = () => {
         style={styles.header}
       >
         <Text style={styles.title}>Shopping Cart</Text>
-        <TouchableOpacity onPress={handleClearCart} style={styles.clearButton}>
-          <Text style={styles.clearButtonText}>Clear All</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          {state.isLoading && (
+            <View style={styles.loadingIndicator}>
+              <Ionicons name="refresh" size={16} color={theme.colors.white} />
+            </View>
+          )}
+          <TouchableOpacity
+            onPress={handleClearCart}
+            style={styles.clearButton}
+          >
+            <Text style={styles.clearButtonText}>Clear All</Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
-
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.colors.primary[500]}
+            colors={[theme.colors.primary[500], theme.colors.purple[500]]}
+          />
+        }
+      >
         {state.items.map((item) => (
           <View
             key={`${item.product._id}-${JSON.stringify(
@@ -198,7 +289,6 @@ const CartScreen = () => {
           </View>
         ))}
       </ScrollView>
-
       <View style={styles.cartSummary}>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Items ({state.totalItems})</Text>
@@ -271,6 +361,14 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.semibold,
   },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+  },
+  loadingIndicator: {
+    padding: theme.spacing.xs,
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
@@ -296,6 +394,13 @@ const styles = StyleSheet.create({
     color: theme.colors.gray[500],
     textAlign: "center",
     lineHeight: 22,
+    marginBottom: theme.spacing.lg,
+  },
+  pullToRefreshHint: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.gray[400],
+    textAlign: "center",
+    fontStyle: "italic",
   },
   scrollView: {
     flex: 1,

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useReducer, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
 
@@ -209,7 +215,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const refreshCartFromAPI = async () => {
     try {
       const token = await AsyncStorage.getItem("auth-token");
-      if (!token) return;
+      if (!token) {
+        console.log("⚠️ [CartContext] No auth token found, skipping refresh");
+        return;
+      }
 
       console.log("🔄 [CartContext] Refreshing cart from API...");
       dispatch({ type: "SET_LOADING", payload: true });
@@ -217,13 +226,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const response = await api.get("/api/cart");
       const data = response.data;
 
-      if (data.ok && Array.isArray(data.cart)) {
+      if (data.ok) {
+        // Handle both empty carts and carts with items
+        const cartItems = Array.isArray(data.cart) ? data.cart : [];
         console.log(
           "✅ [CartContext] Refreshed cart with",
-          data.cart.length,
+          cartItems.length,
           "items"
         );
-        dispatch({ type: "LOAD_CART", payload: data.cart });
+
+        // Always dispatch LOAD_CART even if empty to clear the cart
+        dispatch({ type: "LOAD_CART", payload: cartItems });
+
+        // Update local storage backup
+        const userId = await getUserId();
+        if (userId) {
+          await AsyncStorage.setItem(
+            `cart_${userId}`,
+            JSON.stringify(cartItems)
+          );
+        }
+      } else {
+        console.log("⚠️ [CartContext] API returned error:", data.error);
+        // If API returns error, don't modify the cart state
       }
     } catch (error) {
       console.error("❌ [CartContext] Error refreshing cart:", error);
@@ -379,10 +404,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "CLEAR_CART" });
   };
 
-  const refreshCart = () => {
+  const refreshCart = useCallback(async () => {
     console.log("🔄 [CartContext] Manual cart refresh requested");
-    refreshCartFromAPI();
-  };
+    await refreshCartFromAPI();
+  }, []);
 
   return (
     <CartContext.Provider
