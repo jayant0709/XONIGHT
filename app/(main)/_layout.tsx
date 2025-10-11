@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Tabs, usePathname } from "expo-router";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -6,6 +6,18 @@ import theme from "../../src/constants/theme";
 
 export default function MainLayout() {
   const insets = useSafeAreaInsets();
+  const pathname = usePathname();
+  
+  // Custom function to determine if a tab should be focused
+  const isTabFocused = (tabName: string) => {
+    // Special case: if we're on track-order or order-success, keep orders tab active
+    if (pathname.includes('/track-order') || pathname.includes('/order-success')) {
+      return tabName === 'orders';
+    }
+    
+    // Default behavior
+    return pathname.includes(`/${tabName}`);
+  };
 
   return (
     <Tabs
@@ -42,13 +54,16 @@ export default function MainLayout() {
         options={{
           title: "Home",
           headerShown: false,
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "home" : "home-outline"}
-              size={focused ? size + 2 : size}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color, size }) => {
+            const focused = isTabFocused('home');
+            return (
+              <Ionicons
+                name={focused ? "home" : "home-outline"}
+                size={focused ? size + 2 : size}
+                color={focused ? theme.colors.primary[600] : theme.colors.gray[400]}
+              />
+            );
+          },
         }}
       />
       <Tabs.Screen
@@ -56,13 +71,33 @@ export default function MainLayout() {
         options={{
           title: "Categories",
           headerShown: false,
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "grid" : "grid-outline"}
-              size={focused ? size + 2 : size}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color, size }) => {
+            const focused = isTabFocused('categories');
+            return (
+              <Ionicons
+                name={focused ? "grid" : "grid-outline"}
+                size={focused ? size + 2 : size}
+                color={focused ? theme.colors.primary[600] : theme.colors.gray[400]}
+              />
+            );
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: "Orders",
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => {
+            const focused = isTabFocused('orders');
+            return (
+              <Ionicons
+                name={focused ? "receipt" : "receipt-outline"}
+                size={focused ? size + 2 : size}
+                color={focused ? theme.colors.primary[600] : theme.colors.gray[400]}
+              />
+            );
+          },
         }}
       />
       <Tabs.Screen
@@ -70,13 +105,16 @@ export default function MainLayout() {
         options={{
           title: "Cart",
           headerShown: false,
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "basket" : "basket-outline"}
-              size={focused ? size + 2 : size}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color, size }) => {
+            const focused = isTabFocused('cart');
+            return (
+              <Ionicons
+                name={focused ? "basket" : "basket-outline"}
+                size={focused ? size + 2 : size}
+                color={focused ? theme.colors.primary[600] : theme.colors.gray[400]}
+              />
+            );
+          },
         }}
       />
       <Tabs.Screen
@@ -84,13 +122,35 @@ export default function MainLayout() {
         options={{
           title: "Profile",
           headerShown: false,
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "person" : "person-outline"}
-              size={focused ? size + 2 : size}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color, size }) => {
+            const focused = isTabFocused('profile');
+            return (
+              <Ionicons
+                name={focused ? "person" : "person-outline"}
+                size={focused ? size + 2 : size}
+                color={focused ? theme.colors.primary[600] : theme.colors.gray[400]}
+              />
+            );
+          },
+        }}
+      />
+      {/* Hidden screens - not shown in tabs */}
+      <Tabs.Screen
+        name="checkout"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="track-order"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="order-success"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

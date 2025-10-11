@@ -1,16 +1,30 @@
 export const colors = {
-  // Brand Colors (from web app)
+  // Brand Colors (matching web app exactly)
   primary: {
-    50: '#eff6ff',
-    100: '#dbeafe',
-    200: '#bfdbfe',
-    300: '#93c5fd',
-    400: '#60a5fa',
-    500: '#3b82f6',
-    600: '#2563eb',
-    700: '#1d4ed8',
-    800: '#1e40af',
-    900: '#1e3a8a',
+    50: '#E6FBF6',
+    100: '#CCF7ED',
+    200: '#99EFDB',
+    300: '#66E7C9',
+    400: '#33DFB7',
+    500: '#028489',
+    600: '#026d72',
+    700: '#025a5e',
+    800: '#01474a',
+    900: '#013436',
+  },
+  
+  // Dark Blue (web app secondary)
+  secondary: {
+    50: '#E8F4FF',
+    100: '#D1E9FF',
+    200: '#A3D3FF',
+    300: '#75BDFF',
+    400: '#47A7FF',
+    500: '#0B2447',
+    600: '#091D39',
+    700: '#07162B',
+    800: '#050F1D',
+    900: '#03080F',
   },
   
   // Purple shades (for gradients)
@@ -97,18 +111,18 @@ export const colors = {
     900: '#7f1d1d',
   },
   
-  // Yellow shades (for ratings/highlights)
+  // Yellow shades (for ratings/highlights - matching web app golden)
   yellow: {
-    50: '#fefce8',
-    100: '#fef3c7',
-    200: '#fde68a',
-    300: '#fcd34d',
-    400: '#fbbf24',
-    500: '#f59e0b',
-    600: '#d97706',
-    700: '#b45309',
-    800: '#92400e',
-    900: '#78350f',
+    50: '#FFFCF0',
+    100: '#FFF9E1',
+    200: '#FFF3C3',
+    300: '#FFEDA5',
+    400: '#FFE787',
+    500: '#F2B134',
+    600: '#E6A429',
+    700: '#D4941A',
+    800: '#C2840B',
+    900: '#B07400',
   },
   
   // Grayscale
@@ -133,27 +147,27 @@ export const colors = {
 export const gradients = {
   // Hero banner gradients (matching web app)
   heroBanner: [
-    { colors: ['#f97316', '#ec4899'] as const, name: 'orange-pink' }, // Orange to Pink
-    { colors: ['#a855f7', '#3b82f6'] as const, name: 'purple-blue' }, // Purple to Blue
+    { colors: ['#F2B134', '#E6A429'] as const, name: 'golden' }, // Golden gradient
+    { colors: ['#028489', '#0B2447'] as const, name: 'teal-navy' }, // Teal to Navy
     { colors: ['#22c55e', '#14b8a6'] as const, name: 'green-teal' }, // Green to Teal
   ],
   
-  // Brand gradient (primary)
-  brand: ['#3b82f6', '#a855f7'] as const, // Blue to Purple
+  // Brand gradient (primary - matching web app)
+  brand: ['#028489', '#0B2447'] as const, // Teal to Navy
   
-  // Promotional gradients
+  // Promotional gradients (matching web app)
   promo: {
-    primary: ['#f97316', '#fbbf24'] as const, // Orange to Yellow
-    secondary: ['#ec4899', '#f472b6'] as const, // Pink gradient
+    primary: ['#F2B134', '#E6A429'] as const, // Golden gradient
+    secondary: ['#028489', '#026d72'] as const, // Teal gradient
     tertiary: ['#22c55e', '#4ade80'] as const, // Green gradient
-    accent: ['#a855f7', '#c084fc'] as const, // Purple gradient
+    accent: ['#0B2447', '#091D39'] as const, // Navy gradient
   },
   
-  // Background gradients
+  // Background gradients (matching web app)
   background: {
-    light: ['#ffffff', '#f9fafb'] as const,
-    primary: ['#dbeafe', '#e9d5ff'] as const, // Light blue to light purple
-    warm: ['#fed7aa', '#fecaca'] as const, // Light orange to light pink
+    light: ['#FCFBF8', '#ffffff'] as const, // Web app background
+    primary: ['#E6FBF6', '#ffffff'] as const, // Light mint to white
+    warm: ['#FCFBF8', '#E6FBF6'] as const, // Warm cream to mint
   },
 };
 

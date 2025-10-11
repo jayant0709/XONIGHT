@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "@react-navigation/native";
+import { router } from "expo-router";
 import { useCart } from "../../src/contexts/CartContext";
 import Toast from "react-native-toast-message";
 import theme from "../../src/constants/theme";
@@ -131,11 +132,17 @@ const CartScreen = () => {
   };
 
   const handleCheckout = () => {
-    Toast.show({
-      type: "info",
-      text1: "Checkout",
-      text2: "Checkout functionality coming soon!",
-    });
+    if (state.items.length === 0) {
+      Toast.show({
+        type: "error",
+        text1: "Cart is Empty",
+        text2: "Add items to your cart before checkout",
+      });
+      return;
+    }
+
+    // Navigate to checkout screen
+    router.push("/checkout");
   };
 
   if (state.items.length === 0) {
