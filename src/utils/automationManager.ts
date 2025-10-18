@@ -7,6 +7,10 @@ interface GlobalChatbotContextType {
   isMinimized: boolean;
   setMinimized: (minimized: boolean) => void;
   setRestoreFunction: (fn: () => void) => void;
+  automationProgress: string;
+  setAutomationProgress: (progress: string) => void;
+  automationPercentage: number;
+  setAutomationPercentage: (percentage: number) => void;
 }
 
 interface AutomationManager {
@@ -18,6 +22,7 @@ interface AutomationManager {
   startAutomation: () => void;
   stopAutomation: () => void;
   setGlobalContext: (context: GlobalChatbotContextType) => void;
+  updateProgress: (field: string, percentage: number) => void;
 }
 
 class AutomationManagerImpl implements AutomationManager {
@@ -57,6 +62,13 @@ class AutomationManagerImpl implements AutomationManager {
     // Restore the global chatbot if context is available
     if (this.globalChatbotContext) {
       this.globalChatbotContext.setMinimized(false);
+    }
+  }
+
+  updateProgress(field: string, percentage: number) {
+    if (this.globalChatbotContext) {
+      this.globalChatbotContext.setAutomationProgress(`Filling ${field}...`);
+      this.globalChatbotContext.setAutomationPercentage(percentage);
     }
   }
 }

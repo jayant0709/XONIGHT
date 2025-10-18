@@ -121,10 +121,8 @@ const CheckoutScreen = () => {
               }, 2000);
             },
             (field, progress) => {
-              // On progress
-              setAutomationProgress(
-                `Filling ${field}... ${progress.toFixed(0)}%`
-              );
+              // On progress - update the global chatbot via automation manager
+              automationManager.updateProgress(field, progress);
               setCurrentAutomationField(
                 field.toLowerCase().replace(/\s+/g, "")
               );
@@ -336,18 +334,6 @@ const CheckoutScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Checkout</Text>
       </LinearGradient>
-
-      {/* Automation Status */}
-      {isAutomating && (
-        <View style={styles.automationStatus}>
-          <ActivityIndicator
-            size="small"
-            color={theme.colors.primary[500]}
-            style={styles.automationSpinner}
-          />
-          <Text style={styles.automationText}>🤖 {automationProgress}</Text>
-        </View>
-      )}
 
       <ScrollView
         ref={scrollViewRef}
@@ -844,28 +830,6 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.base,
     fontWeight: theme.typography.weights.semibold,
     color: theme.colors.white,
-  },
-  // Automation status styles
-  automationStatus: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.primary[50],
-    marginHorizontal: theme.spacing.lg,
-    marginTop: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.primary[200],
-  },
-  automationSpinner: {
-    marginRight: theme.spacing.sm,
-  },
-  automationText: {
-    flex: 1,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.medium,
-    color: theme.colors.primary[700],
   },
 });
 

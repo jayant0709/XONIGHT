@@ -79,9 +79,15 @@ const Chatbot: React.FC<ChatbotProps> = ({
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const typingAnimation = useRef(new Animated.Value(0)).current;
+  const progressAnimation = useRef(new Animated.Value(0)).current;
 
   // Use global chatbot context
-  const { isMinimized, setMinimized } = useGlobalChatbot();
+  const {
+    isMinimized,
+    setMinimized,
+    automationProgress,
+    automationPercentage,
+  } = useGlobalChatbot();
 
   // Storage keys
   const CHAT_STORAGE_KEY = "@chatbot_messages";
@@ -421,6 +427,15 @@ const Chatbot: React.FC<ChatbotProps> = ({
     }
   }, [onRestoreChatbot, restoreFromMinimized]);
 
+  // Animate progress bar
+  useEffect(() => {
+    Animated.timing(progressAnimation, {
+      toValue: automationPercentage,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, [automationPercentage, progressAnimation]);
+
   const handleAddToCart = (product: any) => {
     if (onAddToCart) {
       onAddToCart(product);
@@ -592,16 +607,51 @@ const Chatbot: React.FC<ChatbotProps> = ({
                   size={16}
                   color={theme.colors.white}
                 />
+                {automationPercentage > 0 && (
+                  <View style={styles.workingIndicator}>
+                    <Ionicons
+                      name="create-outline"
+                      size={10}
+                      color={theme.colors.primary[500]}
+                    />
+                  </View>
+                )}
               </View>
               <Text style={styles.minimizedText}>
-                🤖 Filling checkout details...
+                {automationProgress || "🤖 Tap to open chat"}
               </Text>
-              <View style={styles.minimizedProgress}>
-                <Animated.View
-                  style={[styles.progressBar, { opacity: typingAnimation }]}
+              <View style={styles.percentageContainer}>
+                {automationPercentage > 0 && (
+                  <Text style={styles.percentageText}>
+                    {Math.round(automationPercentage)}%
+                  </Text>
+                )}
+                <Ionicons
+                  name="chevron-up"
+                  size={14}
+                  color="white"
+                  opacity={0.8}
                 />
               </View>
             </View>
+
+            {/* Progress Bar - positioned at bottom of the minimized bar */}
+            {automationPercentage > 0 && (
+              <View style={styles.progressBarBackground}>
+                <Animated.View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: progressAnimation.interpolate({
+                        inputRange: [0, 100],
+                        outputRange: ["0%", "100%"],
+                        extrapolate: "clamp",
+                      }),
+                    },
+                  ]}
+                />
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </Modal>
@@ -953,7 +1003,7 @@ const styles = StyleSheet.create({
   // Minimized chatbot styles
   minimizedContainer: {
     position: "absolute",
-    top: 50,
+    bottom: 100, // Above navigation bar
     left: theme.spacing.md,
     right: theme.spacing.md,
     zIndex: 1000,
@@ -965,6 +1015,8 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.md,
     ...theme.shadows.medium,
     elevation: 5,
+    position: "relative",
+    overflow: "hidden",
   },
   minimizedContent: {
     flexDirection: "row",
@@ -997,6 +1049,44 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: theme.colors.white,
     borderRadius: 2,
+  },
+  progressBarBackground: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderBottomLeftRadius: theme.borderRadius.xl,
+    borderBottomRightRadius: theme.borderRadius.xl,
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: "#FFD700", // Golden color for progress
+    borderBottomLeftRadius: theme.borderRadius.xl,
+    borderBottomRightRadius: theme.borderRadius.xl,
+  },
+  workingIndicator: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "white",
+    borderRadius: 8,
+    width: 14,
+    height: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  percentageContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 40,
+  },
+  percentageText: {
+    color: "#FFD700",
+    fontSize: 11,
+    fontWeight: "bold",
+    marginBottom: 2,
   },
 });
 

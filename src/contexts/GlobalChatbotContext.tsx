@@ -7,6 +7,10 @@ interface GlobalChatbotContextType {
   setMinimized: (minimized: boolean) => void;
   restoreFunction: (() => void) | null;
   setRestoreFunction: (fn: (() => void) | null) => void;
+  automationProgress: string;
+  setAutomationProgress: (progress: string) => void;
+  automationPercentage: number;
+  setAutomationPercentage: (percentage: number) => void;
 }
 
 const GlobalChatbotContext = createContext<
@@ -25,6 +29,8 @@ export const GlobalChatbotProvider: React.FC<GlobalChatbotProviderProps> = ({
   const [restoreFunction, setRestoreFunction] = useState<(() => void) | null>(
     null
   );
+  const [automationProgress, setAutomationProgress] = useState("");
+  const [automationPercentage, setAutomationPercentage] = useState(0);
 
   return (
     <GlobalChatbotContext.Provider
@@ -35,6 +41,10 @@ export const GlobalChatbotProvider: React.FC<GlobalChatbotProviderProps> = ({
         setMinimized,
         restoreFunction,
         setRestoreFunction,
+        automationProgress,
+        setAutomationProgress,
+        automationPercentage,
+        setAutomationPercentage,
       }}
     >
       {children}
