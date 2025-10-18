@@ -145,21 +145,43 @@ const OrdersScreen = () => {
 
       {orderState.orders.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons
-            name="receipt-outline"
-            size={80}
-            color={theme.colors.gray[400]}
-          />
-          <Text style={styles.emptyTitle}>No Orders Yet</Text>
-          <Text style={styles.emptySubtitle}>
-            When you place orders, they'll appear here
-          </Text>
-          <TouchableOpacity
-            style={styles.shopNowButton}
-            onPress={() => router.replace("/home")}
+          <LinearGradient
+            colors={[theme.colors.primary[50], theme.colors.green[50]]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.emptyCard}
           >
-            <Text style={styles.shopNowText}>Start Shopping</Text>
-          </TouchableOpacity>
+            <View style={styles.emptyIconContainer}>
+              <Ionicons
+                name="receipt-outline"
+                size={80}
+                color={theme.colors.gray[400]}
+              />
+            </View>
+            <Text style={styles.emptyTitle}>No Orders Yet</Text>
+            <Text style={styles.emptySubtitle}>
+              When you place orders, they'll appear here with detailed tracking
+              information
+            </Text>
+            <TouchableOpacity
+              style={styles.shopNowButton}
+              onPress={() => router.replace("/home")}
+            >
+              <LinearGradient
+                colors={theme.gradients.brand}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.shopNowGradient}
+              >
+                <Ionicons
+                  name="bag-outline"
+                  size={20}
+                  color={theme.colors.white}
+                />
+                <Text style={styles.shopNowText}>Start Shopping</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </LinearGradient>
         </View>
       ) : (
         <ScrollView
@@ -171,72 +193,67 @@ const OrdersScreen = () => {
         >
           <View style={styles.ordersContainer}>
             {orderState.orders.map((order: Order) => (
-              <TouchableOpacity
-                key={order._id}
-                style={styles.orderCard}
-                onPress={() => handleOrderPress(order)}
-              >
+              <View key={order._id} style={styles.orderCard}>
+                {/* Compact Order Header */}
                 <View style={styles.orderHeader}>
-                  <View style={styles.orderInfo}>
-                    <Text style={styles.orderIdText}>
-                      Order #{order._id?.slice(-8).toUpperCase() || "UNKNOWN"}
-                    </Text>
-                    <Text style={styles.orderDateText}>
-                      {formatDate(order.createdAt)}
-                    </Text>
-                  </View>
-
-                  <View style={styles.statusContainer}>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        {
-                          backgroundColor: getStatusColor(order.status) + "20",
-                        },
-                      ]}
-                    >
+                  <View style={styles.orderMainInfo}>
+                    <View style={styles.orderIdRow}>
                       <Ionicons
-                        name={getStatusIcon(order.status) as any}
+                        name="receipt"
                         size={16}
-                        color={getStatusColor(order.status)}
+                        color={theme.colors.gray[600]}
                       />
-                      <Text
-                        style={[
-                          styles.statusText,
-                          { color: getStatusColor(order.status) },
-                        ]}
-                      >
-                        {order.status.charAt(0).toUpperCase() +
-                          order.status.slice(1)}
+                      <Text style={styles.orderIdText}>
+                        #{order._id?.slice(-8).toUpperCase() || "UNKNOWN"}
+                      </Text>
+                      <Text style={styles.orderDateText}>
+                        • {formatDate(order.createdAt)}
+                      </Text>
+                    </View>
+
+                    <View style={styles.orderSummaryRow}>
+                      <Text style={styles.itemsText}>
+                        {order.items?.length || 0}{" "}
+                        {(order.items?.length || 0) === 1 ? "item" : "items"}
+                      </Text>
+                      <Text style={styles.totalText}>
+                        ₹{(order.pricing?.total || 0).toFixed(2)}
                       </Text>
                     </View>
                   </View>
-                </View>
 
-                <View style={styles.orderContent}>
-                  <View style={styles.orderItems}>
-                    <Text style={styles.itemsText}>
-                      {order.items?.length || 0}
-                      {(order.items?.length || 0) === 1 ? " item" : " items"}
-                    </Text>
-                    <Text style={styles.totalText}>
-                      ₹{(order.pricing?.total || 0).toFixed(2)}
-                    </Text>
-                  </View>
-
-                  <View style={styles.deliveryInfo}>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      { backgroundColor: getStatusColor(order.status) },
+                    ]}
+                  >
                     <Ionicons
-                      name="location-outline"
-                      size={16}
-                      color={theme.colors.gray[500]}
+                      name={getStatusIcon(order.status) as any}
+                      size={12}
+                      color={theme.colors.white}
                     />
-                    <Text style={styles.deliveryText} numberOfLines={1}>
-                      {order.deliveryAddress?.city || "Unknown"},
-                      {order.deliveryAddress?.state || "Unknown"}
+                    <Text style={styles.statusText}>
+                      {order.status.charAt(0).toUpperCase() +
+                        order.status.slice(1)}
                     </Text>
                   </View>
                 </View>
 
+                {/* Compact Delivery Info */}
+                <View style={styles.deliveryRow}>
+                  <Ionicons
+                    name="location"
+                    size={14}
+                    color={theme.colors.green[600]}
+                  />
+                  <Text style={styles.deliveryText} numberOfLines={1}>
+                    {order.deliveryAddress?.city || "Unknown"},{" "}
+                    {order.deliveryAddress?.state || "Unknown"}
+                  </Text>
+                </View>
+
+                {/* Compact Action Buttons */}
                 <View style={styles.orderActions}>
                   <TouchableOpacity
                     style={styles.trackButton}
@@ -248,26 +265,26 @@ const OrdersScreen = () => {
                     }
                   >
                     <Ionicons
-                      name="location-outline"
-                      size={16}
-                      color={theme.colors.primary[600]}
+                      name="location"
+                      size={14}
+                      color={theme.colors.white}
                     />
-                    <Text style={styles.trackButtonText}>Track Order</Text>
+                    <Text style={styles.trackButtonText}>Track</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={styles.detailsButton}
                     onPress={() => handleOrderPress(order)}
                   >
-                    <Text style={styles.detailsButtonText}>View Details</Text>
+                    <Text style={styles.detailsButtonText}>Details</Text>
                     <Ionicons
                       name="chevron-forward"
-                      size={16}
-                      color={theme.colors.gray[400]}
+                      size={14}
+                      color={theme.colors.primary[600]}
                     />
                   </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+              </View>
             ))}
           </View>
 
@@ -281,7 +298,7 @@ const OrdersScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.gray[50],
+    backgroundColor: "#FCFBF8", // Matching web app background
   },
   header: {
     flexDirection: "row",
@@ -313,112 +330,140 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: theme.spacing.xxxl,
-    gap: theme.spacing.lg,
+  },
+  emptyCard: {
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.xxxl,
+    alignItems: "center",
+    width: "100%",
+    ...theme.shadows.medium,
+  },
+  emptyIconContainer: {
+    marginBottom: theme.spacing.lg,
   },
   emptyTitle: {
     fontSize: theme.typography.sizes.xl,
     fontWeight: theme.typography.weights.bold,
     color: theme.colors.gray[800],
+    marginBottom: theme.spacing.md,
   },
   emptySubtitle: {
     fontSize: theme.typography.sizes.base,
     color: theme.colors.gray[500],
     textAlign: "center",
+    marginBottom: theme.spacing.xl,
+    lineHeight: 22,
   },
   shopNowButton: {
-    backgroundColor: theme.colors.primary[600],
+    borderRadius: theme.borderRadius.lg,
+    overflow: "hidden",
+    ...theme.shadows.small,
+  },
+  shopNowGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.sm,
     paddingHorizontal: theme.spacing.xl,
     paddingVertical: theme.spacing.md,
-    borderRadius: theme.borderRadius.lg,
   },
   shopNowText: {
     fontSize: theme.typography.sizes.base,
-    fontWeight: theme.typography.weights.semibold,
+    fontWeight: theme.typography.weights.bold,
     color: theme.colors.white,
   },
   scrollView: {
     flex: 1,
   },
   ordersContainer: {
-    paddingHorizontal: theme.spacing.xl,
-    paddingTop: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
   },
   orderCard: {
     backgroundColor: theme.colors.white,
-    borderRadius: theme.borderRadius.xl,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.md,
+    overflow: "hidden",
     ...theme.shadows.small,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[100],
   },
   orderHeader: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: theme.spacing.md,
   },
-  orderInfo: {
+  orderMainInfo: {
     flex: 1,
+    marginRight: theme.spacing.md,
+  },
+  orderIdRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
   },
   orderIdText: {
     fontSize: theme.typography.sizes.base,
     fontWeight: theme.typography.weights.bold,
     color: theme.colors.gray[800],
-    marginBottom: theme.spacing.xs,
   },
   orderDateText: {
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.gray[500],
+    fontWeight: theme.typography.weights.medium,
   },
-  statusContainer: {
-    alignItems: "flex-end",
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.borderRadius.full,
-  },
-  statusText: {
-    fontSize: theme.typography.sizes.xs,
-    fontWeight: theme.typography.weights.semibold,
-  },
-  orderContent: {
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.gray[100],
-    paddingTop: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-  },
-  orderItems: {
+  orderSummaryRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: theme.spacing.sm,
   },
   itemsText: {
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.gray[600],
+    fontWeight: theme.typography.weights.medium,
   },
   totalText: {
     fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.bold,
     color: theme.colors.gray[800],
   },
-  deliveryInfo: {
+  statusBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.full,
+    minWidth: 80,
+    justifyContent: "center",
+  },
+  statusText: {
+    fontSize: theme.typography.sizes.xs,
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.white,
+  },
+  deliveryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray[100],
   },
   deliveryText: {
     fontSize: theme.typography.sizes.sm,
-    color: theme.colors.gray[500],
+    color: theme.colors.gray[600],
+    fontWeight: theme.typography.weights.medium,
     flex: 1,
   },
   orderActions: {
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.gray[100],
-    paddingTop: theme.spacing.md,
+    flexDirection: "row",
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    gap: theme.spacing.sm,
   },
   trackButton: {
     flexDirection: "row",
@@ -426,15 +471,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: theme.spacing.xs,
     paddingVertical: theme.spacing.sm,
-    backgroundColor: theme.colors.primary[50],
-    borderRadius: theme.borderRadius.lg,
     paddingHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
+    backgroundColor: theme.colors.primary[600],
+    borderRadius: theme.borderRadius.md,
+    flex: 1,
   },
   trackButtonText: {
     fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.semibold,
-    color: theme.colors.primary[600],
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.white,
   },
   detailsButton: {
     flexDirection: "row",
@@ -442,11 +487,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: theme.spacing.xs,
     paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    backgroundColor: theme.colors.gray[50],
+    borderRadius: theme.borderRadius.md,
+    flex: 1,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[200],
   },
   detailsButtonText: {
     fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.medium,
-    color: theme.colors.gray[600],
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.primary[600],
   },
   bottomSpacing: {
     height: theme.spacing.xxxl,

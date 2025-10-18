@@ -369,7 +369,7 @@ const Chatbot: React.FC<ChatbotProps> = ({
       switch (action) {
         case "checkout":
           addMessage(
-            "Perfect! I'll minimize myself and help you fill out the checkout form automatically. Watch the magic! ✨",
+            "Perfect! I'll minimize myself and help you fill out the checkout form automatically!",
             false
           );
           setTimeout(() => {
