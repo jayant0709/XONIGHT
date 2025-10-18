@@ -115,8 +115,12 @@ const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
           {product.name}
         </Text>
 
-        {product.brand && (
-          <Text style={styles.productBrand}>{product.brand}</Text>
+        {(product.brand || product.attributes?.brand) && (
+          <View style={styles.brandContainer}>
+            <Text style={styles.productBrand}>
+              {product.brand || product.attributes?.brand || "Unknown Brand"}
+            </Text>
+          </View>
         )}
 
         <View style={styles.priceContainer}>
@@ -289,10 +293,22 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
     lineHeight: 18,
   },
+  brandContainer: {
+    backgroundColor: theme.colors.primary[50],
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.sm,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: theme.colors.primary[200],
+  },
   productBrand: {
     fontSize: theme.typography.sizes.xs,
-    color: theme.colors.gray[500],
-    marginBottom: theme.spacing.xs,
+    color: theme.colors.primary[700],
+    fontWeight: theme.typography.weights.semibold,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   priceContainer: {
     flexDirection: "row",

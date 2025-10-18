@@ -432,9 +432,13 @@ const HomeScreen = () => {
               <Text style={styles.productName} numberOfLines={2}>
                 {product.name}
               </Text>
-              <Text style={styles.productBrand}>
-                {product.brand || product.attributes?.brand || "Unknown Brand"}
-              </Text>
+              <View style={styles.brandContainer}>
+                <Text style={styles.productBrand}>
+                  {product.brand ||
+                    product.attributes?.brand ||
+                    "Unknown Brand"}
+                </Text>
+              </View>
               <Text style={styles.productPrice}>
                 ₹{product.price.toFixed(2)}
               </Text>
@@ -822,11 +826,22 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
     lineHeight: 18,
   },
+  brandContainer: {
+    backgroundColor: theme.colors.primary[50],
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.sm,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: theme.colors.primary[200],
+  },
   productBrand: {
     fontSize: theme.typography.sizes.xs,
-    color: theme.colors.gray[500],
-    marginBottom: theme.spacing.sm,
-    textTransform: "capitalize",
+    color: theme.colors.primary[700],
+    fontWeight: theme.typography.weights.semibold,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   productPrice: {
     fontSize: theme.typography.sizes.lg,
