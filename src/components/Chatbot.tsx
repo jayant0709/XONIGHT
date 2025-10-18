@@ -22,6 +22,14 @@ import { router } from "expo-router";
 import theme from "../constants/theme";
 import api from "../services/api";
 import { useGlobalChatbot } from "../contexts/GlobalChatbotContext";
+import { useCart } from "../contexts/CartContext";
+import { useOrders } from "../contexts/OrderContext";
+import {
+  createPaymentSelectionMessage,
+  placeRealOrder,
+  paymentMethods,
+} from "../utils/paymentAutomation";
+import { automationManager } from "../utils/automationManager";
 
 interface Message {
   id: string;
@@ -51,6 +59,8 @@ interface Message {
     text: string;
     action: string;
     icon?: string;
+    paymentMethodId?: string;
+    orderId?: string;
   }>;
 }
 
@@ -80,6 +90,10 @@ const Chatbot: React.FC<ChatbotProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const typingAnimation = useRef(new Animated.Value(0)).current;
   const progressAnimation = useRef(new Animated.Value(0)).current;
+
+  // Get cart context for order details
+  const { state: cartState, clearCart } = useCart();
+  const { createOrder } = useOrders();
 
   // Use global chatbot context
   const {
@@ -240,6 +254,8 @@ const Chatbot: React.FC<ChatbotProps> = ({
       text: string;
       action: string;
       icon?: string;
+      paymentMethodId?: string;
+      orderId?: string;
     }>
   ) => {
     const newMessage: Message = {
@@ -258,6 +274,20 @@ const Chatbot: React.FC<ChatbotProps> = ({
     });
     scrollToBottom();
   };
+
+  // Function to trigger payment selection after checkout automation
+  const triggerPaymentSelection = useCallback(() => {
+    setTimeout(() => {
+      setMinimized(false);
+      const paymentMessage = createPaymentSelectionMessage();
+      addMessage(
+        paymentMessage.text,
+        false,
+        undefined,
+        paymentMessage.quickActions
+      );
+    }, 1000);
+  }, []);
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
@@ -323,7 +353,9 @@ const Chatbot: React.FC<ChatbotProps> = ({
     }
   };
 
-  const handleQuickAction = (action: string) => {
+  const handleQuickAction = (quickAction: any) => {
+    const action = quickAction.action || quickAction; // Support both object and string
+
     // Add user message showing their choice
     addMessage(`${getActionDisplayText(action)}`, true);
 
@@ -375,6 +407,125 @@ const Chatbot: React.FC<ChatbotProps> = ({
           );
           break;
 
+        case "payment_select":
+          const paymentMethodId = quickAction.paymentMethodId;
+          const selectedMethod = paymentMethods.find(
+            (pm) => pm.id === paymentMethodId
+          );
+
+          if (selectedMethod) {
+            addMessage(
+              `Excellent choice! Processing your order with ${selectedMethod.name}... 🎉`,
+              false
+            );
+
+            // Start payment automation
+            setTimeout(async () => {
+              setMinimized(true);
+              automationManager.startPaymentFlow();
+
+              try {
+                const orderDetails = await placeRealOrder(
+                  paymentMethodId,
+                  cartState, // Pass entire cart state instead of just items
+                  {
+                    fullName: "Jayant Patil",
+                    phone: "8261961156",
+                    email: "jayantpatil07092003@gmail.com",
+                    address: "Vihani Residency, Shankar Nagar",
+                    city: "Aurangabad",
+                    state: "Maharashtra",
+                    pincode: "431001",
+                  }, // Use the automated delivery address
+                  createOrder, // Real order creation function
+                  clearCart, // Real cart clearing function
+                  (message: string, progress: number) => {
+                    automationManager.updatePaymentProgress(message, progress);
+                  }
+                );
+
+                // Show order confirmation
+                if (orderDetails) {
+                  setTimeout(() => {
+                    setMinimized(false);
+                    automationManager.stopAutomation();
+                    automationManager.resetAutomation();
+
+                    addMessage(
+                      `🎊 ORDER CONFIRMED! 🎊\n\n` +
+                        `Order ID: ${orderDetails.orderId}\n` +
+                        `Total: ₹${orderDetails.totalAmount}\n` +
+                        `Payment: ${orderDetails.paymentMethod}\n` +
+                        `Delivery: ${orderDetails.estimatedDelivery}\n\n` +
+                        `Your order has been successfully placed! What would you like to do next? 📦✨`,
+                      false,
+                      undefined,
+                      [
+                        {
+                          id: "track_order",
+                          text: "📍 Track My Order",
+                          action: "track_order",
+                          orderId: orderDetails.orderId,
+                        },
+                        {
+                          id: "shop_more",
+                          text: "�️ Continue Shopping",
+                          action: "shop_more",
+                        },
+                      ]
+                    );
+                  }, 1000);
+                } else {
+                  throw new Error("Order creation returned null");
+                }
+              } catch (error) {
+                console.error("Order placement failed:", error);
+                setMinimized(false);
+                automationManager.stopAutomation();
+                automationManager.resetAutomation();
+                addMessage(
+                  "Sorry, there was an issue placing your order in our system. Please try again or contact support. The error has been logged.",
+                  false
+                );
+              }
+            }, 1500);
+          }
+          break;
+
+        case "track_order":
+          const orderId = quickAction.orderId;
+          if (orderId) {
+            addMessage(
+              `Taking you to track your order! You'll see real-time delivery status and all order details. 📦📍`,
+              false
+            );
+            setTimeout(() => {
+              onClose();
+              router.push(`/track-order?orderId=${orderId}`);
+            }, 1000);
+          } else {
+            addMessage(
+              "Taking you to track your orders! You can see all your order details and delivery status there. 📦",
+              false
+            );
+            setTimeout(() => {
+              onClose();
+              router.push("/orders");
+            }, 1000);
+          }
+          break;
+
+        case "shop_more":
+          addMessage(
+            "Great! Let me take you back to continue shopping. Discover more amazing products! 🛍️",
+            false
+          );
+          setTimeout(() => {
+            onClose();
+            router.push("/home");
+          }, 1000);
+          break;
+
         default:
           addMessage(
             "I'm not sure what you'd like to do. How can I help you today?",
@@ -394,6 +545,12 @@ const Chatbot: React.FC<ChatbotProps> = ({
         return "I want to see more products";
       case "similar_items":
         return "Show me similar items";
+      case "payment_select":
+        return "I'll pay with this method";
+      case "track_order":
+        return "Track my order";
+      case "shop_more":
+        return "Continue shopping";
       default:
         return "Continue shopping";
     }
@@ -401,24 +558,9 @@ const Chatbot: React.FC<ChatbotProps> = ({
 
   const restoreFromMinimized = useCallback(() => {
     setMinimized(false);
-    addMessage(
-      "Great! I've filled out your address details. Now let's proceed with payment options. Would you like to continue? 💳",
-      false,
-      undefined,
-      [
-        {
-          id: "continue_payment",
-          text: "💳 Continue to Payment",
-          action: "continue_payment",
-        },
-        {
-          id: "review_details",
-          text: "📝 Review Details",
-          action: "review_details",
-        },
-      ]
-    );
-  }, []);
+    // Trigger payment selection after checkout automation completes
+    triggerPaymentSelection();
+  }, [triggerPaymentSelection]);
 
   // Pass restore function to parent component
   useEffect(() => {
@@ -556,7 +698,7 @@ const Chatbot: React.FC<ChatbotProps> = ({
                 <TouchableOpacity
                   key={action.id}
                   style={styles.quickActionButton}
-                  onPress={() => handleQuickAction(action.action)}
+                  onPress={() => handleQuickAction(action)}
                 >
                   <Text style={styles.quickActionText}>{action.text}</Text>
                 </TouchableOpacity>

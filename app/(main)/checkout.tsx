@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useCart } from "../../src/contexts/CartContext";
 import {
@@ -78,6 +79,49 @@ const CheckoutScreen = () => {
   };
 
   const pricing = calculatePricing();
+
+  // Clear form every time the page is focused/navigated to
+  useFocusEffect(
+    useCallback(() => {
+      console.log("🔄 [CheckoutScreen] Page focused - clearing form");
+
+      // Reset all form fields
+      setDeliveryAddress({
+        fullName: "",
+        phone: "",
+        email: "",
+        address: "",
+        city: "",
+        state: "",
+        pincode: "",
+        landmark: "",
+      });
+
+      // Reset other form states
+      setOrderNotes("");
+      setErrors({});
+      setIsLoading(false);
+
+      // // Only reset automation if it's not supposed to be active
+      // if (!automationManager.isAutomationActive) {
+      //   setIsAutomating(false);
+      //   setAutomationProgress("");
+      //   setCurrentAutomationField("");
+      // }
+
+      // Clear any text input values directly (in case of cached values)
+      setTimeout(() => {
+        fullNameRef.current?.clear();
+        phoneRef.current?.clear();
+        emailRef.current?.clear();
+        addressRef.current?.clear();
+        cityRef.current?.clear();
+        stateRef.current?.clear();
+        pincodeRef.current?.clear();
+        landmarkRef.current?.clear();
+      }, 100);
+    }, [])
+  );
 
   // Check for automation on component mount
   useEffect(() => {

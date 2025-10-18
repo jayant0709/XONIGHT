@@ -23,6 +23,9 @@ interface AutomationManager {
   stopAutomation: () => void;
   setGlobalContext: (context: GlobalChatbotContextType) => void;
   updateProgress: (field: string, percentage: number) => void;
+  startPaymentFlow: () => void;
+  updatePaymentProgress: (message: string, percentage: number) => void;
+  resetAutomation: () => void;
 }
 
 class AutomationManagerImpl implements AutomationManager {
@@ -69,6 +72,32 @@ class AutomationManagerImpl implements AutomationManager {
     if (this.globalChatbotContext) {
       this.globalChatbotContext.setAutomationProgress(`Filling ${field}...`);
       this.globalChatbotContext.setAutomationPercentage(percentage);
+    }
+  }
+
+  startPaymentFlow() {
+    this.isAutomationActive = true;
+    if (this.globalChatbotContext) {
+      this.globalChatbotContext.setMinimized(true);
+      this.globalChatbotContext.setAutomationProgress("Processing payment...");
+      this.globalChatbotContext.setAutomationPercentage(0);
+    }
+  }
+
+  updatePaymentProgress(message: string, percentage: number) {
+    if (this.globalChatbotContext) {
+      this.globalChatbotContext.setAutomationProgress(message);
+      this.globalChatbotContext.setAutomationPercentage(percentage);
+    }
+  }
+
+  resetAutomation() {
+    this.isAutomationActive = false;
+    this.restoreChatbot = null;
+    if (this.globalChatbotContext) {
+      this.globalChatbotContext.setAutomationProgress("");
+      this.globalChatbotContext.setAutomationPercentage(0);
+      this.globalChatbotContext.setMinimized(false);
     }
   }
 }

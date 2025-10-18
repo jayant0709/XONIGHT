@@ -216,11 +216,11 @@ const OrdersScreen = () => {
                 <View style={styles.orderContent}>
                   <View style={styles.orderItems}>
                     <Text style={styles.itemsText}>
-                      {order.items.length}
-                      {order.items.length === 1 ? "item" : "items"}
+                      {order.items?.length || 0}
+                      {(order.items?.length || 0) === 1 ? " item" : " items"}
                     </Text>
                     <Text style={styles.totalText}>
-                      ₹{order.pricing.total.toFixed(2)}
+                      ₹{(order.pricing?.total || 0).toFixed(2)}
                     </Text>
                   </View>
 
@@ -231,7 +231,8 @@ const OrdersScreen = () => {
                       color={theme.colors.gray[500]}
                     />
                     <Text style={styles.deliveryText} numberOfLines={1}>
-                      {order.deliveryAddress.city},{order.deliveryAddress.state}
+                      {order.deliveryAddress?.city || "Unknown"},
+                      {order.deliveryAddress?.state || "Unknown"}
                     </Text>
                   </View>
                 </View>

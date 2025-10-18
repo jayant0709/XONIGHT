@@ -175,7 +175,7 @@ export const automateCheckoutForm = async (
     }
     
     // Wait a bit before calling completion callback
-    await wait(1000);
+    await wait(100);
     
     if (onComplete) {
       onComplete();

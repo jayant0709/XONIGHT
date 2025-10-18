@@ -30,17 +30,24 @@ const OrderSuccessScreen = () => {
   const loadOrderDetails = async () => {
     try {
       setLoading(true);
+      console.log("🔍 [OrderSuccess] Loading order with ID:", orderId);
       const orderData = await getOrderById(orderId!);
+      console.log(
+        "📋 [OrderSuccess] Received order data:",
+        JSON.stringify(orderData, null, 2)
+      );
+
       if (orderData) {
         setOrder(orderData);
+        console.log("✅ [OrderSuccess] Order set successfully");
       } else {
         // If order details can't be loaded, show a basic success message
         console.log(
-          "Order details not available, but order was created successfully"
+          "⚠️ [OrderSuccess] Order details not available, but order was created successfully"
         );
       }
     } catch (error) {
-      console.error("Error loading order:", error);
+      console.error("❌ [OrderSuccess] Error loading order:", error);
       // Don't show error toast - the order was created successfully
       // Just log the error and continue showing success
     } finally {
@@ -252,26 +259,29 @@ const OrderSuccessScreen = () => {
         </View>
 
         {/* Items Ordered */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Items Ordered ({order.items.length})
-          </Text>
-          <View style={styles.itemsCard}>
-            {order.items.map((item: any, index: number) => (
-              <View key={index} style={styles.orderItem}>
-                <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemDetails}>
-                    Qty: {item.quantity} • ₹{item.price.toFixed(2)} each
+        {order.items && order.items.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              Items Ordered ({order.items.length})
+            </Text>
+            <View style={styles.itemsCard}>
+              {order.items.map((item: any, index: number) => (
+                <View key={index} style={styles.orderItem}>
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemName}>{item.name}</Text>
+                    <Text style={styles.itemDetails}>
+                      Qty: {item.quantity} • ₹{(item.price || 0).toFixed(2)}{" "}
+                      each
+                    </Text>
+                  </View>
+                  <Text style={styles.itemTotal}>
+                    ₹{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
                   </Text>
                 </View>
-                <Text style={styles.itemTotal}>
-                  ₹{(item.price * item.quantity).toFixed(2)}
-                </Text>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Delivery Address */}
         <View style={styles.section}>
@@ -301,47 +311,50 @@ const OrderSuccessScreen = () => {
         </View>
 
         {/* Payment Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Payment Summary</Text>
-          <View style={styles.paymentCard}>
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Subtotal</Text>
-              <Text style={styles.paymentValue}>
-                ₹{order.pricing.subtotal.toFixed(2)}
-              </Text>
-            </View>
-
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Delivery Fee</Text>
-              <Text
-                style={[
-                  styles.paymentValue,
-                  order.pricing.deliveryFee === 0 && styles.freeDelivery,
-                ]}
-              >
-                {order.pricing.deliveryFee === 0
-                  ? "FREE"
-                  : `₹${order.pricing.deliveryFee.toFixed(2)}`}
-              </Text>
-            </View>
-
-            {order.pricing.discount > 0 && (
+        {order.pricing && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Payment Summary</Text>
+            <View style={styles.paymentCard}>
               <View style={styles.paymentRow}>
-                <Text style={styles.paymentLabel}>Discount</Text>
-                <Text style={[styles.paymentValue, styles.discountValue]}>
-                  -₹{order.pricing.discount.toFixed(2)}
+                <Text style={styles.paymentLabel}>Subtotal</Text>
+                <Text style={styles.paymentValue}>
+                  ₹{(order.pricing?.subtotal || 0).toFixed(2)}
                 </Text>
               </View>
-            )}
 
-            <View style={[styles.paymentRow, styles.totalRow]}>
-              <Text style={styles.totalLabel}>Total Paid</Text>
-              <Text style={styles.totalValue}>
-                ₹{order.pricing.total.toFixed(2)}
-              </Text>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Delivery Fee</Text>
+                <Text
+                  style={[
+                    styles.paymentValue,
+                    (order.pricing?.deliveryFee || 0) === 0 &&
+                      styles.freeDelivery,
+                  ]}
+                >
+                  {(order.pricing?.deliveryFee || 0) === 0
+                    ? "FREE"
+                    : `₹${(order.pricing?.deliveryFee || 0).toFixed(2)}`}
+                </Text>
+              </View>
+
+              {(order.pricing?.discount || 0) > 0 && (
+                <View style={styles.paymentRow}>
+                  <Text style={styles.paymentLabel}>Discount</Text>
+                  <Text style={[styles.paymentValue, styles.discountValue]}>
+                    -₹{(order.pricing?.discount || 0).toFixed(2)}
+                  </Text>
+                </View>
+              )}
+
+              <View style={[styles.paymentRow, styles.totalRow]}>
+                <Text style={styles.totalLabel}>Total Paid</Text>
+                <Text style={styles.totalValue}>
+                  ₹{(order.pricing?.total || 0).toFixed(2)}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
+        )}
       </ScrollView>
 
       {/* Action Buttons */}
