@@ -1,0 +1,706 @@
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Image,
+  Animated,
+  Modal,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import theme from "../constants/theme";
+import api from "../services/api";
+
+interface Message {
+  id: string;
+  text: string;
+  isUser: boolean;
+  timestamp: Date;
+  product?: {
+    _id: string;
+    sku: string;
+    name: string;
+    price: number;
+    images: string[];
+    categories: string[];
+    description: string;
+    stock: number;
+    status: string;
+    brand?: string;
+    attributes?: {
+      brand?: string;
+      color?: string;
+      [key: string]: any;
+    };
+  };
+  isTyping?: boolean;
+}
+
+interface ChatbotProps {
+  isVisible: boolean;
+  onClose: () => void;
+  onAddToCart?: (product: any) => void;
+}
+
+const { width, height } = Dimensions.get("window");
+
+const Chatbot: React.FC<ChatbotProps> = ({
+  isVisible,
+  onClose,
+  onAddToCart,
+}) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputText, setInputText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const typingAnimation = useRef(new Animated.Value(0)).current;
+
+  // Storage keys
+  const CHAT_STORAGE_KEY = "@chatbot_messages";
+
+  // Default welcome message
+  const getDefaultMessage = (): Message => ({
+    id: "1",
+    text: "Hi there! 👋 I'm your personal shopping assistant. I can help you find products, add them to cart, and even complete your purchase! What can I help you with today?",
+    isUser: false,
+    timestamp: new Date(),
+  });
+
+  // Load messages from storage
+  const loadMessages = async () => {
+    try {
+      const storedMessages = await AsyncStorage.getItem(CHAT_STORAGE_KEY);
+      if (storedMessages) {
+        const parsedMessages = JSON.parse(storedMessages);
+        console.log("Loaded messages:", parsedMessages.length);
+        // Convert timestamp strings back to Date objects
+        const messagesWithDates = parsedMessages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+        setMessages(messagesWithDates);
+      } else {
+        console.log("No stored messages, using default");
+        // First time - set welcome message
+        const defaultMessage = getDefaultMessage();
+        setMessages([defaultMessage]);
+      }
+    } catch (error) {
+      console.error("Error loading messages:", error);
+      const defaultMessage = getDefaultMessage();
+      setMessages([defaultMessage]);
+    }
+  };
+
+  // Save messages to storage
+  const saveMessages = async (newMessages: Message[]) => {
+    try {
+      console.log("Saving messages:", newMessages.length);
+      await AsyncStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(newMessages));
+    } catch (error) {
+      console.error("Error saving messages:", error);
+    }
+  };
+
+  // Clear all chat messages
+  const clearChat = () => {
+    Alert.alert(
+      "Clear Chat",
+      "Are you sure you want to clear all chat messages?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: () => {
+            const defaultMessage = getDefaultMessage();
+            setMessages([defaultMessage]);
+            saveMessages([defaultMessage]);
+          },
+        },
+      ]
+    );
+  };
+
+  // Load messages when component mounts
+  useEffect(() => {
+    loadMessages();
+  }, []);
+
+  // Save messages whenever they change (backup save)
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveMessages(messages);
+    }
+  }, [messages]);
+
+  // Function to fetch Louis Philippe jeans from backend
+  const fetchLouisPhilippeJeans = async () => {
+    try {
+      const response = await api.get("/api/products/68ebfbc3f183fdbc35c9d28f");
+      if (response.data && response.data.product) {
+        return response.data.product;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    if (isTyping) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(typingAnimation, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(typingAnimation, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [isTyping]);
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  const addMessage = (text: string, isUser: boolean, product?: any) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text,
+      isUser,
+      timestamp: new Date(),
+      product,
+    };
+
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages, newMessage];
+      saveMessages(updatedMessages);
+      return updatedMessages;
+    });
+    scrollToBottom();
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputText.trim()) return;
+
+    const userMessage = inputText.trim();
+    setInputText("");
+
+    // Add user message
+    addMessage(userMessage, true);
+
+    // Show typing indicator
+    setIsTyping(true);
+
+    // Simulate processing time
+    setTimeout(async () => {
+      setIsTyping(false);
+      await handleBotResponse(userMessage);
+    }, 1500);
+  };
+
+  const handleBotResponse = async (userMessage: string) => {
+    const lowerMessage = userMessage.toLowerCase();
+
+    if (lowerMessage.includes("pants") || lowerMessage.includes("jeans")) {
+      // Show thinking message
+      addMessage(
+        "Let me check what we have in premium denim for you... 🤔",
+        false
+      );
+
+      // Fetch the actual product from backend
+      const product = await fetchLouisPhilippeJeans();
+
+      setTimeout(() => {
+        if (product) {
+          addMessage(
+            "Perfect! I'd recommend this premium piece:",
+            false,
+            product
+          );
+        } else {
+          addMessage(
+            "I'm having trouble accessing our inventory right now. Let me try again in a moment!",
+            false
+          );
+        }
+      }, 1000);
+    } else if (lowerMessage.includes("hello") || lowerMessage.includes("hi")) {
+      addMessage(
+        "Hello! 👋 I'm here to help you shop. Try asking me about pants, or any other product you're looking for!",
+        false
+      );
+    } else if (lowerMessage.includes("help")) {
+      addMessage(
+        "I can help you with:\n• Finding products\n• Adding items to cart\n• Product recommendations\n• Checkout process\n\nJust ask me anything! For example, try 'show me pants'",
+        false
+      );
+    } else {
+      addMessage(
+        "I'm working on expanding my knowledge! For now, try asking me about 'pants' and I'll show you our featured product. More categories coming soon! 🚀",
+        false
+      );
+    }
+  };
+
+  const handleAddToCart = (product: any) => {
+    if (onAddToCart) {
+      onAddToCart(product);
+    }
+    addMessage(
+      `✅ Added "${product.name}" to your cart! Anything else I can help you with?`,
+      false
+    );
+  };
+
+  const renderMessage = (message: Message) => {
+    if (message.isUser) {
+      return (
+        <View key={message.id} style={styles.userMessageContainer}>
+          <View style={styles.userMessage}>
+            <Text style={styles.userMessageText}>{message.text}</Text>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <View key={message.id} style={styles.botMessageContainer}>
+        <View style={styles.botAvatar}>
+          <Ionicons
+            name="chatbubble-ellipses"
+            size={20}
+            color={theme.colors.white}
+          />
+        </View>
+        <View style={styles.botMessage}>
+          <Text style={styles.botMessageText}>{message.text}</Text>
+
+          {message.product && (
+            <View style={styles.productCard}>
+              <Image
+                source={{
+                  uri:
+                    message.product.images && message.product.images.length > 0
+                      ? message.product.images[0].startsWith("data:")
+                        ? message.product.images[0]
+                        : `data:image/jpeg;base64,${message.product.images[0]}`
+                      : "https://via.placeholder.com/300x200?text=No+Image",
+                }}
+                style={styles.productImage}
+              />
+              <View style={styles.productInfo}>
+                <Text style={styles.productBrand}>
+                  {message.product.brand ||
+                    message.product.attributes?.brand ||
+                    "Premium Brand"}
+                </Text>
+                <Text style={styles.productName}>{message.product.name}</Text>
+                <Text style={styles.productPrice}>
+                  ₹{message.product.price}
+                </Text>
+
+                <View style={styles.productActions}>
+                  <TouchableOpacity
+                    style={styles.addToCartBtn}
+                    onPress={() => handleAddToCart(message.product)}
+                  >
+                    <Ionicons
+                      name="basket-outline"
+                      size={16}
+                      color={theme.colors.white}
+                    />
+                    <Text style={styles.addToCartText}>Add to Cart</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.viewProductBtn}
+                    onPress={() => {
+                      if (message.product) {
+                        onClose();
+                        router.push(`/product/${message.product._id}`);
+                      }
+                    }}
+                  >
+                    <Text style={styles.viewProductText}>View Details</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  const renderTypingIndicator = () => {
+    if (!isTyping) return null;
+
+    return (
+      <View style={styles.botMessageContainer}>
+        <View style={styles.botAvatar}>
+          <Ionicons
+            name="chatbubble-ellipses"
+            size={20}
+            color={theme.colors.white}
+          />
+        </View>
+        <View style={styles.typingContainer}>
+          <Animated.View
+            style={[styles.typingDot, { opacity: typingAnimation }]}
+          />
+          <Animated.View
+            style={[styles.typingDot, { opacity: typingAnimation }]}
+          />
+          <Animated.View
+            style={[styles.typingDot, { opacity: typingAnimation }]}
+          />
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <Modal
+      visible={isVisible}
+      animationType="slide"
+      transparent={false}
+      onRequestClose={onClose}
+    >
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        {/* Header */}
+        <LinearGradient
+          colors={theme.gradients.brand}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.header}
+        >
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          </TouchableOpacity>
+
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerTitle}>Shopping Assistant</Text>
+            <Text style={styles.headerSubtitle}>Online • Ready to help</Text>
+          </View>
+
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={clearChat} style={styles.clearButton}>
+              <Ionicons
+                name="trash-outline"
+                size={20}
+                color={theme.colors.white}
+              />
+            </TouchableOpacity>
+
+            <View style={styles.headerAvatar}>
+              <Ionicons
+                name="chatbubble-ellipses"
+                size={24}
+                color={theme.colors.white}
+              />
+            </View>
+          </View>
+        </LinearGradient>
+
+        {/* Messages */}
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {messages.map(renderMessage)}
+          {renderTypingIndicator()}
+        </ScrollView>
+
+        {/* Input */}
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Type your message..."
+              placeholderTextColor={theme.colors.gray[400]}
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={500}
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                inputText.trim() ? styles.sendButtonActive : null,
+              ]}
+              onPress={handleSendMessage}
+              disabled={!inputText.trim()}
+            >
+              <Ionicons
+                name="send"
+                size={20}
+                color={
+                  inputText.trim() ? theme.colors.white : theme.colors.gray[400]
+                }
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.gray[50],
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.lg,
+    paddingTop: theme.spacing.xl + 20,
+    ...theme.shadows.medium,
+  },
+  closeButton: {
+    padding: theme.spacing.sm,
+    marginRight: theme.spacing.md,
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.white,
+  },
+  headerSubtitle: {
+    fontSize: theme.typography.sizes.sm,
+    color: "rgba(255, 255, 255, 0.8)",
+    marginTop: 2,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.md,
+  },
+  clearButton: {
+    padding: theme.spacing.sm,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: theme.borderRadius.full,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  headerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  messagesContainer: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+  },
+  userMessageContainer: {
+    alignItems: "flex-end",
+    marginBottom: theme.spacing.md,
+  },
+  userMessage: {
+    backgroundColor: theme.colors.primary[500],
+    borderRadius: theme.borderRadius.lg,
+    borderBottomRightRadius: theme.borderRadius.sm,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    maxWidth: "80%",
+  },
+  userMessageText: {
+    color: theme.colors.white,
+    fontSize: theme.typography.sizes.base,
+    fontWeight: theme.typography.weights.medium,
+  },
+  botMessageContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: theme.spacing.md,
+  },
+  botAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.primary[500],
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
+  },
+  botMessage: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.borderRadius.lg,
+    borderBottomLeftRadius: theme.borderRadius.sm,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    maxWidth: "80%",
+    ...theme.shadows.small,
+  },
+  botMessageText: {
+    color: theme.colors.gray[800],
+    fontSize: theme.typography.sizes.base,
+    lineHeight: 20,
+  },
+  productCard: {
+    marginTop: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[200],
+    borderRadius: theme.borderRadius.lg,
+    overflow: "hidden",
+  },
+  productImage: {
+    width: "100%",
+    height: 160,
+    resizeMode: "cover",
+  },
+  productInfo: {
+    padding: theme.spacing.md,
+  },
+  productBrand: {
+    fontSize: theme.typography.sizes.xs,
+    color: theme.colors.primary[600],
+    fontWeight: theme.typography.weights.semibold,
+    textTransform: "uppercase",
+    marginBottom: theme.spacing.xs,
+  },
+  productName: {
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.gray[800],
+    marginBottom: theme.spacing.xs,
+  },
+  productPrice: {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.primary[600],
+    marginBottom: theme.spacing.md,
+  },
+  productActions: {
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+  },
+  Ionicons: {
+    marginLeft: theme.spacing.sm,
+  },
+  addToCartBtn: {
+    flex: 1,
+    backgroundColor: theme.colors.primary[500],
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    gap: theme.spacing.xs,
+    minHeight: 44,
+  },
+  addToCartText: {
+    color: theme.colors.white,
+    fontSize: theme.typography.sizes.xs,
+    fontWeight: theme.typography.weights.semibold,
+    textAlign: "center",
+    flex: 1,
+  },
+  viewProductBtn: {
+    flex: 1,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: theme.colors.primary[500],
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    minHeight: 44,
+  },
+  viewProductText: {
+    color: theme.colors.primary[600],
+    fontSize: theme.typography.sizes.xs,
+    fontWeight: theme.typography.weights.semibold,
+    textAlign: "center",
+  },
+  typingContainer: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.borderRadius.lg,
+    borderBottomLeftRadius: theme.borderRadius.sm,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.xs,
+    ...theme.shadows.small,
+  },
+  typingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.colors.gray[400],
+  },
+  inputContainer: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.white,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.gray[200],
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    backgroundColor: theme.colors.gray[100],
+    borderRadius: theme.borderRadius.xl,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.gray[800],
+    maxHeight: 100,
+    paddingVertical: theme.spacing.sm,
+  },
+  sendButton: {
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.full,
+    marginLeft: theme.spacing.sm,
+  },
+  sendButtonActive: {
+    backgroundColor: theme.colors.primary[500],
+  },
+});
+
+export default Chatbot;

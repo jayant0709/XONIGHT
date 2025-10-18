@@ -26,6 +26,8 @@ import HeroBanner from "../../src/components/HeroBanner";
 import WelcomeSection from "../../src/components/WelcomeSection";
 import FeaturedProductsSection from "../../src/components/FeaturedProductsSection";
 import NewsletterSection from "../../src/components/NewsletterSection";
+import Chatbot from "../../src/components/Chatbot";
+import ChatbotFloatingButton from "../../src/components/ChatbotFloatingButton";
 
 interface Product {
   _id: string;
@@ -66,6 +68,7 @@ const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isChatbotVisible, setIsChatbotVisible] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -531,6 +534,16 @@ const HomeScreen = () => {
           />
         </View>
       </ScrollView>
+
+      {/* Chatbot Floating Button */}
+      <ChatbotFloatingButton onPress={() => setIsChatbotVisible(true)} />
+
+      {/* Chatbot Modal */}
+      <Chatbot
+        isVisible={isChatbotVisible}
+        onClose={() => setIsChatbotVisible(false)}
+        onAddToCart={handleAddToCart}
+      />
     </SafeAreaView>
   );
 };
