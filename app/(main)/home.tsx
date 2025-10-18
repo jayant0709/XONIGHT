@@ -22,6 +22,10 @@ import { useWishlist } from "../../src/contexts/WishlistContext";
 import api from "../../src/services/api";
 import Toast from "react-native-toast-message";
 import theme from "../../src/constants/theme";
+import HeroBanner from "../../src/components/HeroBanner";
+import WelcomeSection from "../../src/components/WelcomeSection";
+import FeaturedProductsSection from "../../src/components/FeaturedProductsSection";
+import NewsletterSection from "../../src/components/NewsletterSection";
 
 interface Product {
   _id: string;
@@ -474,10 +478,33 @@ const HomeScreen = () => {
         }
       >
         {renderHeader()}
+        <WelcomeSection userName={user?.username} />
         {renderSearchBar()}
-        {renderPromotions()}
+        <HeroBanner
+          promotions={promotions}
+          onShopNow={() => console.log("Shop now pressed")}
+        />
         {renderCategories()}
+        <FeaturedProductsSection
+          title="Featured Products"
+          subtitle="Handpicked products that our customers love. Discover quality and style in every item."
+          products={filteredProducts}
+          onProductPress={(product) => router.push(`/product/${product._id}`)}
+          onAddToCart={handleAddToCart}
+          onToggleWishlist={handleToggleWishlist}
+          isInWishlist={isInWishlist}
+          showDiscount={true}
+        />
         {renderProducts()}
+        <View style={styles.sectionSpacing}>
+          <NewsletterSection
+            onSubscribe={async (email) => {
+              // Handle newsletter subscription
+              console.log("Newsletter subscription:", email);
+              // You can add API call here
+            }}
+          />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -490,6 +517,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  sectionSpacing: {
+    paddingVertical: theme.spacing.lg,
   },
   loadingContainer: {
     flex: 1,
