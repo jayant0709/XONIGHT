@@ -19,7 +19,7 @@ const sampleUserData: AddressData = {
   phone: "8261961156",
   address: "Vihani Residency, Shankar Nagar",
   city: "Aurangabad",
-  state: "MH",
+  state: "Maharashtra",
   zipCode: "431001",
   country: "India"
 };

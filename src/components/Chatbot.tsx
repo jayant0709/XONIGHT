@@ -436,6 +436,15 @@ const Chatbot: React.FC<ChatbotProps> = ({
     }).start();
   }, [automationPercentage, progressAnimation]);
 
+  // Scroll to bottom when chatbot becomes visible
+  useEffect(() => {
+    if (isVisible) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 10); // Slight delay to ensure UI is ready
+    }
+  }, [isVisible]);
+
   const handleAddToCart = (product: any) => {
     if (onAddToCart) {
       onAddToCart(product);
@@ -700,7 +709,7 @@ const Chatbot: React.FC<ChatbotProps> = ({
             <View style={styles.headerAvatar}>
               <Ionicons
                 name="chatbubble-ellipses"
-                size={24}
+                size={18} // Reduced from 24 to 18
                 color={theme.colors.white}
               />
             </View>
@@ -761,8 +770,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.lg,
-    paddingTop: theme.spacing.xl + 20,
+    paddingVertical: theme.spacing.md, // Reduced from lg to md
+    paddingTop: theme.spacing.lg + 10, // Reduced from xl + 20 to lg + 10
     ...theme.shadows.medium,
   },
   closeButton: {
@@ -773,12 +782,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.base, // Reduced from lg to base
     fontWeight: theme.typography.weights.semibold,
     color: theme.colors.white,
   },
   headerSubtitle: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.xs, // Reduced from sm to xs
     color: "rgba(255, 255, 255, 0.8)",
     marginTop: 2,
   },
@@ -795,8 +804,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.2)",
   },
   headerAvatar: {
-    width: 40,
-    height: 40,
+    width: 32, // Reduced from 40 to 32
+    height: 32, // Reduced from 40 to 32
     borderRadius: theme.borderRadius.full,
     backgroundColor: "rgba(255, 255, 255, 0.2)",
     justifyContent: "center",
