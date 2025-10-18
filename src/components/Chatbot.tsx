@@ -45,6 +45,12 @@ interface Message {
     };
   };
   isTyping?: boolean;
+  quickActions?: Array<{
+    id: string;
+    text: string;
+    action: string;
+    icon?: string;
+  }>;
 }
 
 interface ChatbotProps {
@@ -209,13 +215,24 @@ const Chatbot: React.FC<ChatbotProps> = ({
     }, 100);
   };
 
-  const addMessage = (text: string, isUser: boolean, product?: any) => {
+  const addMessage = (
+    text: string,
+    isUser: boolean,
+    product?: any,
+    quickActions?: Array<{
+      id: string;
+      text: string;
+      action: string;
+      icon?: string;
+    }>
+  ) => {
     const newMessage: Message = {
       id: Date.now().toString(),
       text,
       isUser,
       timestamp: new Date(),
       product,
+      quickActions,
     };
 
     setMessages((prevMessages) => {
@@ -290,13 +307,104 @@ const Chatbot: React.FC<ChatbotProps> = ({
     }
   };
 
+  const handleQuickAction = (action: string) => {
+    // Add user message showing their choice
+    addMessage(`${getActionDisplayText(action)}`, true);
+
+    // Show typing indicator
+    setIsTyping(true);
+
+    // Handle the action
+    setTimeout(() => {
+      setIsTyping(false);
+
+      switch (action) {
+        case "checkout":
+          addMessage(
+            "Perfect! Let me take you to checkout. You can review your items and complete your purchase there. 🛒",
+            false
+          );
+          setTimeout(() => {
+            onClose();
+            router.push("/checkout");
+          }, 1000);
+          break;
+
+        case "view_cart":
+          addMessage(
+            "Taking you to your cart where you can review all your selected items! 👀",
+            false
+          );
+          setTimeout(() => {
+            onClose();
+            router.push("/cart");
+          }, 1000);
+          break;
+
+        case "more_products":
+          addMessage(
+            "Great choice! I can help you find more amazing products. Try asking me about pants, shirts, or any other category you're interested in! 🛍️",
+            false
+          );
+          break;
+
+        case "similar_items":
+          addMessage(
+            "I'd love to show you similar items! This feature is coming soon. For now, try asking me about specific product categories like 'pants' or 'jeans' to see our featured items! ✨",
+            false
+          );
+          break;
+
+        default:
+          addMessage(
+            "I'm not sure what you'd like to do. How can I help you today?",
+            false
+          );
+      }
+    }, 1000);
+  };
+
+  const getActionDisplayText = (action: string): string => {
+    switch (action) {
+      case "checkout":
+        return "Take me to checkout";
+      case "view_cart":
+        return "Show me my cart";
+      case "more_products":
+        return "I want to see more products";
+      case "similar_items":
+        return "Show me similar items";
+      default:
+        return "Continue shopping";
+    }
+  };
+
   const handleAddToCart = (product: any) => {
     if (onAddToCart) {
       onAddToCart(product);
     }
+
+    // Create quick action buttons for post-cart actions
+    const quickActions = [
+      {
+        id: "checkout",
+        text: "🛒 Checkout Now",
+        action: "checkout",
+        icon: "card-outline",
+      },
+      {
+        id: "view_cart",
+        text: "👀 View Cart",
+        action: "view_cart",
+        icon: "bag-outline",
+      },
+    ];
+
     addMessage(
-      `✅ Added "${product.name}" to your cart! Anything else I can help you with?`,
-      false
+      `✅ Added "${product.name}" to your cart! What would you like to do next?`,
+      false,
+      undefined,
+      quickActions
     );
   };
 
@@ -373,6 +481,20 @@ const Chatbot: React.FC<ChatbotProps> = ({
                   </TouchableOpacity>
                 </View>
               </View>
+            </View>
+          )}
+
+          {message.quickActions && message.quickActions.length > 0 && (
+            <View style={styles.quickActionsContainer}>
+              {message.quickActions.map((action) => (
+                <TouchableOpacity
+                  key={action.id}
+                  style={styles.quickActionButton}
+                  onPress={() => handleQuickAction(action.action)}
+                >
+                  <Text style={styles.quickActionText}>{action.text}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           )}
         </View>
@@ -726,6 +848,28 @@ const styles = StyleSheet.create({
   },
   sendButtonActive: {
     backgroundColor: theme.colors.primary[500],
+  },
+  quickActionsContainer: {
+    marginTop: theme.spacing.md,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: theme.spacing.sm,
+  },
+  quickActionButton: {
+    backgroundColor: theme.colors.gray[100],
+    borderRadius: theme.borderRadius.lg,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[200],
+    flex: 1,
+    minWidth: "45%",
+  },
+  quickActionText: {
+    color: theme.colors.gray[700],
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
+    textAlign: "center",
   },
 });
 
