@@ -21,6 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import theme from "../constants/theme";
 import api from "../services/api";
+import { useGlobalChatbot } from "../contexts/GlobalChatbotContext";
 
 interface Message {
   id: string;
@@ -76,9 +77,11 @@ const Chatbot: React.FC<ChatbotProps> = ({
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const typingAnimation = useRef(new Animated.Value(0)).current;
+
+  // Use global chatbot context
+  const { isMinimized, setMinimized } = useGlobalChatbot();
 
   // Storage keys
   const CHAT_STORAGE_KEY = "@chatbot_messages";
@@ -333,7 +336,7 @@ const Chatbot: React.FC<ChatbotProps> = ({
           );
           setTimeout(() => {
             // Minimize the chatbot and start automation
-            setIsMinimized(true);
+            setMinimized(true);
             router.push("/checkout");
             if (onStartAutomation) {
               onStartAutomation();
@@ -391,7 +394,7 @@ const Chatbot: React.FC<ChatbotProps> = ({
   };
 
   const restoreFromMinimized = useCallback(() => {
-    setIsMinimized(false);
+    setMinimized(false);
     addMessage(
       "Great! I've filled out your address details. Now let's proceed with payment options. Would you like to continue? 💳",
       false,

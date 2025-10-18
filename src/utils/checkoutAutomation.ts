@@ -14,19 +14,19 @@ interface AddressData {
 
 // Sample user data - in a real app, this would come from user profile or be customizable
 const sampleUserData: AddressData = {
-  fullName: "John Smith",
-  email: "john.smith@example.com",
-  phone: "+1 (555) 123-4567",
-  address: "123 Main Street, Apt 4B",
-  city: "New York",
-  state: "NY",
-  zipCode: "10001",
-  country: "United States"
+  fullName: "Jayant Patil",
+  email: "jayantpatil07092003@gmail.com",
+  phone: "8261961156",
+  address: "Vihani Residency, Shankar Nagar",
+  city: "Aurangabad",
+  state: "MH",
+  zipCode: "431001",
+  country: "India"
 };
 
 // Typing animation configuration
-const TYPING_SPEED = 50; // milliseconds between characters
-const FIELD_DELAY = 500; // milliseconds to wait between fields
+const TYPING_SPEED = 30; // milliseconds between characters
+const FIELD_DELAY = 300; // milliseconds to wait between fields
 
 // Simulate typing in a text input with realistic timing
 const simulateTyping = async (

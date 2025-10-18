@@ -26,9 +26,6 @@ import HeroBanner from "../../src/components/HeroBanner";
 import WelcomeSection from "../../src/components/WelcomeSection";
 import FeaturedProductsSection from "../../src/components/FeaturedProductsSection";
 import NewsletterSection from "../../src/components/NewsletterSection";
-import Chatbot from "../../src/components/Chatbot";
-import ChatbotFloatingButton from "../../src/components/ChatbotFloatingButton";
-import { automationManager } from "../../src/utils/automationManager";
 
 interface Product {
   _id: string;
@@ -69,10 +66,6 @@ const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [isChatbotVisible, setIsChatbotVisible] = useState(false);
-  const [chatbotRestoreFunction, setChatbotRestoreFunction] = useState<
-    (() => void) | null
-  >(null);
 
   useEffect(() => {
     loadData();
@@ -538,23 +531,6 @@ const HomeScreen = () => {
           />
         </View>
       </ScrollView>
-
-      {/* Chatbot Floating Button */}
-      <ChatbotFloatingButton onPress={() => setIsChatbotVisible(true)} />
-
-      {/* Chatbot Modal */}
-      <Chatbot
-        isVisible={isChatbotVisible}
-        onClose={() => setIsChatbotVisible(false)}
-        onAddToCart={handleAddToCart}
-        onStartAutomation={() => {
-          automationManager.startAutomation();
-        }}
-        onRestoreChatbot={(restoreFunction) => {
-          setChatbotRestoreFunction(() => restoreFunction);
-          automationManager.setRestoreFunction(restoreFunction);
-        }}
-      />
     </SafeAreaView>
   );
 };
