@@ -14,6 +14,9 @@ import {
 import { Link, router } from "expo-router";
 import { useAuth } from "../../src/hooks/useAuth";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import theme from "../../src/constants/theme";
 
 const SignInScreen = () => {
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
@@ -46,86 +49,190 @@ const SignInScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to your XONIGHT account</Text>
-          </View>
-
-          <View style={styles.form}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Username or Email</Text>
-              <TextInput
-                style={styles.input}
-                value={usernameOrEmail}
-                onChangeText={setUsernameOrEmail}
-                placeholder="Enter your username or email"
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                textContentType="emailAddress"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Enter your password"
-                  placeholderTextColor="#9CA3AF"
-                  secureTextEntry={!showPassword}
-                  textContentType="password"
+    <LinearGradient
+      colors={theme.gradients.background.warm}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardView}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* App Logo/Icon */}
+            <View style={styles.logoContainer}>
+              <LinearGradient
+                colors={theme.gradients.brand}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.logoCircle}
+              >
+                <Ionicons
+                  name="storefront"
+                  size={40}
+                  color={theme.colors.white}
                 />
-                <TouchableOpacity
-                  style={styles.eyeIcon}
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  <Text style={styles.eyeText}>
-                    {showPassword ? "👁️" : "👁️‍🗨️"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              </LinearGradient>
             </View>
 
-            <TouchableOpacity
-              style={[styles.signInButton, isLoading && styles.disabledButton]}
-              onPress={handleSignIn}
-              disabled={isLoading}
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Welcome Back</Text>
+              <Text style={styles.subtitle}>
+                Sign in to your XONIGHT account and continue shopping
+              </Text>
+            </View>
+
+            {/* Form Card */}
+            <LinearGradient
+              colors={[theme.colors.white, theme.colors.primary[50] + "30"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.formCard}
             >
-              {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={styles.signInButtonText}>Sign In</Text>
-              )}
-            </TouchableOpacity>
+              <View style={styles.form}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>
+                    <Ionicons
+                      name="person-outline"
+                      size={16}
+                      color={theme.colors.gray[600]}
+                    />{" "}
+                    Username or Email
+                  </Text>
+                  <View style={styles.inputWrapper}>
+                    <Ionicons
+                      name="mail-outline"
+                      size={20}
+                      color={theme.colors.gray[500]}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      value={usernameOrEmail}
+                      onChangeText={setUsernameOrEmail}
+                      placeholder="Enter your username or email"
+                      placeholderTextColor={theme.colors.gray[400]}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      textContentType="emailAddress"
+                    />
+                  </View>
+                </View>
 
-            <View style={styles.signUpContainer}>
-              <Text style={styles.signUpText}>Don't have an account? </Text>
-              <Link href="/signup" asChild>
-                <TouchableOpacity>
-                  <Text style={styles.signUpLink}>Sign Up</Text>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={16}
+                      color={theme.colors.gray[600]}
+                    />{" "}
+                    Password
+                  </Text>
+                  <View style={styles.inputWrapper}>
+                    <Ionicons
+                      name="key-outline"
+                      size={20}
+                      color={theme.colors.gray[500]}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Enter your password"
+                      placeholderTextColor={theme.colors.gray[400]}
+                      secureTextEntry={!showPassword}
+                      textContentType="password"
+                    />
+                    <TouchableOpacity
+                      style={styles.eyeIcon}
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
+                      <Ionicons
+                        name={showPassword ? "eye-outline" : "eye-off-outline"}
+                        size={20}
+                        color={theme.colors.gray[500]}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.signInButton,
+                    isLoading && styles.disabledButton,
+                  ]}
+                  onPress={handleSignIn}
+                  disabled={isLoading}
+                >
+                  <LinearGradient
+                    colors={
+                      isLoading
+                        ? [theme.colors.gray[400], theme.colors.gray[500]]
+                        : theme.gradients.brand
+                    }
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.signInButtonGradient}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator
+                        color={theme.colors.white}
+                        size="small"
+                      />
+                    ) : (
+                      <>
+                        <Ionicons
+                          name="log-in-outline"
+                          size={20}
+                          color={theme.colors.white}
+                        />
+                        <Text style={styles.signInButtonText}>Sign In</Text>
+                      </>
+                    )}
+                  </LinearGradient>
                 </TouchableOpacity>
-              </Link>
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+                <View style={styles.divider}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>or</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                <View style={styles.signUpContainer}>
+                  <Text style={styles.signUpText}>Don't have an account? </Text>
+                  <Link href="/signup" asChild>
+                    <TouchableOpacity style={styles.signUpLinkContainer}>
+                      <Text style={styles.signUpLink}>Sign Up</Text>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={16}
+                        color={theme.colors.primary[600]}
+                      />
+                    </TouchableOpacity>
+                  </Link>
+                </View>
+              </View>
+            </LinearGradient>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+  },
+  safeArea: {
+    flex: 1,
   },
   keyboardView: {
     flex: 1,
@@ -133,106 +240,139 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.xxxl,
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: theme.spacing.xxxl,
+  },
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    ...theme.shadows.medium,
   },
   header: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: theme.spacing.xxxl,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6B7280",
+    fontSize: theme.typography.sizes["3xl"],
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.gray[800],
+    marginBottom: theme.spacing.sm,
     textAlign: "center",
   },
+  subtitle: {
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.gray[600],
+    textAlign: "center",
+    lineHeight: 24,
+    paddingHorizontal: theme.spacing.md,
+  },
+  formCard: {
+    borderRadius: theme.borderRadius.xl,
+    ...theme.shadows.large,
+    overflow: "hidden",
+  },
   form: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    padding: theme.spacing.xxxl,
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: theme.spacing.xl,
   },
   label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#1F2937",
-    backgroundColor: "#F9FAFB",
-  },
-  passwordContainer: {
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.gray[700],
+    marginBottom: theme.spacing.sm,
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    backgroundColor: "#F9FAFB",
   },
-  passwordInput: {
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: theme.colors.gray[200],
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.white,
+    ...theme.shadows.small,
+  },
+  inputIcon: {
+    marginLeft: theme.spacing.md,
+  },
+  input: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#1F2937",
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.lg,
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.gray[800],
+    fontWeight: theme.typography.weights.medium,
   },
   eyeIcon: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  eyeText: {
-    fontSize: 18,
+    padding: theme.spacing.md,
   },
   signInButton: {
-    backgroundColor: "#3B82F6",
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: "center",
-    marginTop: 8,
+    borderRadius: theme.borderRadius.lg,
+    overflow: "hidden",
+    marginTop: theme.spacing.md,
+    ...theme.shadows.medium,
   },
   disabledButton: {
-    backgroundColor: "#9CA3AF",
+    opacity: 0.7,
+  },
+  signInButtonGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.xl,
+    gap: theme.spacing.sm,
   },
   signInButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
+    color: theme.colors.white,
+    fontSize: theme.typography.sizes.base,
+    fontWeight: theme.typography.weights.bold,
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: theme.spacing.xl,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.gray[200],
+  },
+  dividerText: {
+    marginHorizontal: theme.spacing.md,
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.gray[500],
+    fontWeight: theme.typography.weights.medium,
   },
   signUpContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 24,
+    flexWrap: "wrap",
   },
   signUpText: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.gray[600],
+    fontWeight: theme.typography.weights.medium,
+  },
+  signUpLinkContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.xs,
   },
   signUpLink: {
-    fontSize: 14,
-    color: "#3B82F6",
-    fontWeight: "600",
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.primary[600],
+    fontWeight: theme.typography.weights.bold,
   },
 });
 
