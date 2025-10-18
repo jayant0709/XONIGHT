@@ -3,6 +3,7 @@ import Toast from "react-native-toast-message";
 import { CartProvider } from "../src/contexts/CartContext";
 import { WishlistProvider } from "../src/contexts/WishlistContext";
 import { OrderProvider } from "../src/contexts/OrderContext";
+import { toastConfig } from "../src/components/CustomToast";
 
 export default function RootLayout() {
   return (
@@ -18,7 +19,7 @@ export default function RootLayout() {
               options={{ headerShown: false }}
             />
           </Stack>
-          <Toast />
+          <Toast config={toastConfig} />
         </OrderProvider>
       </WishlistProvider>
     </CartProvider>

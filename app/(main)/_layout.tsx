@@ -2,11 +2,14 @@ import { Tabs, usePathname } from "expo-router";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { View, Text } from "react-native";
 import theme from "../../src/constants/theme";
+import { useCart } from "../../src/contexts/CartContext";
 
 export default function MainLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const { state: cartState } = useCart();
 
   // Custom function to determine if a tab should be focused
   const isTabFocused = (tabName: string) => {
@@ -117,13 +120,42 @@ export default function MainLayout() {
           tabBarIcon: ({ color, size }) => {
             const focused = isTabFocused("cart");
             return (
-              <Ionicons
-                name={focused ? "basket" : "basket-outline"}
-                size={focused ? size + 2 : size}
-                color={
-                  focused ? theme.colors.primary[600] : theme.colors.gray[400]
-                }
-              />
+              <View style={{ position: "relative" }}>
+                <Ionicons
+                  name={focused ? "basket" : "basket-outline"}
+                  size={focused ? size + 2 : size}
+                  color={
+                    focused ? theme.colors.primary[600] : theme.colors.gray[400]
+                  }
+                />
+                {cartState.totalItems > 0 && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: -6,
+                      right: -6,
+                      backgroundColor: theme.colors.red[500],
+                      borderRadius: 10,
+                      minWidth: 18,
+                      height: 18,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      borderWidth: 1,
+                      borderColor: theme.colors.white,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.colors.white,
+                        fontSize: 10,
+                        fontWeight: "600",
+                      }}
+                    >
+                      {cartState.totalItems > 99 ? "99+" : cartState.totalItems}
+                    </Text>
+                  </View>
+                )}
+              </View>
             );
           },
         }}

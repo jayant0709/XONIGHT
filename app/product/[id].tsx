@@ -92,8 +92,8 @@ const ProductDetailScreen = () => {
 
     addToCart(product, selectedQuantity);
     Toast.show({
-      type: "success",
-      text1: "Added to Cart",
+      type: "cart",
+      text1: "Added to Cart! 🛒",
       text2: `${selectedQuantity} ${product.name} added to your cart.`,
     });
   };

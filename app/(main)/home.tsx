@@ -165,8 +165,8 @@ const HomeScreen = () => {
   const handleAddToCart = async (product: Product) => {
     addToCart(product);
     Toast.show({
-      type: "success",
-      text1: "Added to Cart",
+      type: "cart",
+      text1: "Added to Cart! 🛒",
       text2: `${product.name} has been added to your cart.`,
     });
 
