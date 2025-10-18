@@ -13,10 +13,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useCart } from "../../src/contexts/CartContext";
 import { useWishlist } from "../../src/contexts/WishlistContext";
 import api from "../../src/services/api";
 import Toast from "react-native-toast-message";
+import theme from "../../src/constants/theme";
 
 interface Product {
   _id: string;
@@ -137,18 +139,23 @@ const ProductDetailScreen = () => {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+        <LinearGradient
+          colors={theme.gradients.brand}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.header}
+        >
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+            <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Product Details</Text>
           <View style={styles.headerRight} />
-        </View>
+        </LinearGradient>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color={theme.colors.primary[500]} />
           <Text style={styles.loadingText}>Loading product...</Text>
         </View>
       </SafeAreaView>
@@ -158,18 +165,27 @@ const ProductDetailScreen = () => {
   if (!product) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+        <LinearGradient
+          colors={theme.gradients.brand}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.header}
+        >
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+            <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Product Details</Text>
           <View style={styles.headerRight} />
-        </View>
+        </LinearGradient>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+          <Ionicons
+            name="alert-circle-outline"
+            size={64}
+            color={theme.colors.red[500]}
+          />
           <Text style={styles.errorText}>Product not found</Text>
         </View>
       </SafeAreaView>
@@ -178,12 +194,17 @@ const ProductDetailScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      <LinearGradient
+        colors={theme.gradients.brand}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.header}
+      >
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {product.name}
@@ -195,10 +216,14 @@ const ProductDetailScreen = () => {
           <Ionicons
             name={isInWishlist(product._id) ? "heart" : "heart-outline"}
             size={24}
-            color={isInWishlist(product._id) ? "#EF4444" : "#6B7280"}
+            color={
+              isInWishlist(product._id)
+                ? theme.colors.red[500]
+                : theme.colors.white
+            }
           />
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
       <ScrollView style={styles.scrollView}>
         {/* Product Images */}
@@ -253,10 +278,42 @@ const ProductDetailScreen = () => {
         <View style={styles.productInfo}>
           <View style={styles.productHeader}>
             <Text style={styles.productName}>{product.name}</Text>
-            <Text style={styles.productBrand}>
-              {product.brand || product.attributes?.brand || "Unknown Brand"}
-            </Text>
-            <Text style={styles.productPrice}>₹{product.price.toFixed(2)}</Text>
+            <View style={styles.brandContainer}>
+              <Text style={styles.productBrand}>
+                {product.brand || product.attributes?.brand || "Unknown Brand"}
+              </Text>
+            </View>
+            <View style={styles.priceSection}>
+              <Text style={styles.productPrice}>
+                ₹{product.price.toFixed(2)}
+              </Text>
+              <View style={styles.stockBadge}>
+                <Ionicons
+                  name={product.stock > 0 ? "checkmark-circle" : "close-circle"}
+                  size={16}
+                  color={
+                    product.stock > 0
+                      ? theme.colors.green[500]
+                      : theme.colors.red[500]
+                  }
+                />
+                <Text
+                  style={[
+                    styles.stockText,
+                    {
+                      color:
+                        product.stock > 0
+                          ? theme.colors.green[600]
+                          : theme.colors.red[600],
+                    },
+                  ]}
+                >
+                  {product.stock > 0
+                    ? `${product.stock} in stock`
+                    : "Out of stock"}
+                </Text>
+              </View>
+            </View>
           </View>
 
           <View style={styles.productMeta}>
@@ -332,25 +389,47 @@ const ProductDetailScreen = () => {
           </View>
         </View>
       </ScrollView>
-
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity
+        <LinearGradient
+          colors={theme.gradients.brand}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
           style={styles.addToCartButton}
-          onPress={handleAddToCart}
-          disabled={product.stock === 0}
         >
-          <Ionicons name="basket-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.addToCartText}>Add to Cart</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonContent}
+            onPress={handleAddToCart}
+            disabled={product.stock === 0}
+          >
+            <Ionicons
+              name="basket-outline"
+              size={20}
+              color={theme.colors.white}
+            />
+            <Text style={styles.addToCartText}>Add to Cart</Text>
+          </TouchableOpacity>
+        </LinearGradient>
 
-        <TouchableOpacity
+        <LinearGradient
+          colors={theme.gradients.promo.accent}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
           style={styles.buyNowButton}
-          onPress={handleBuyNow}
-          disabled={product.stock === 0}
         >
-          <Text style={styles.buyNowText}>Buy Now</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonContent}
+            onPress={handleBuyNow}
+            disabled={product.stock === 0}
+          >
+            <Ionicons
+              name="flash-outline"
+              size={20}
+              color={theme.colors.white}
+            />
+            <Text style={styles.buyNowText}>Buy Now</Text>
+          </TouchableOpacity>
+        </LinearGradient>
       </View>
     </SafeAreaView>
   );
@@ -359,224 +438,273 @@ const ProductDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: theme.colors.gray[50],
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.lg,
+    ...theme.shadows.small,
   },
   backButton: {
-    padding: 4,
-    marginRight: 12,
+    padding: theme.spacing.sm,
+    marginRight: theme.spacing.md,
   },
   headerTitle: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1F2937",
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.white,
   },
   headerRight: {
     width: 40,
   },
   wishlistButton: {
-    padding: 4,
+    padding: theme.spacing.sm,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: theme.borderRadius.full,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: theme.colors.gray[50],
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: "#6B7280",
+    marginTop: theme.spacing.md,
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.gray[500],
+    fontWeight: theme.typography.weights.medium,
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: theme.colors.gray[50],
   },
   errorText: {
-    marginTop: 16,
-    fontSize: 18,
-    color: "#EF4444",
-    fontWeight: "600",
+    marginTop: theme.spacing.lg,
+    fontSize: theme.typography.sizes.lg,
+    color: theme.colors.red[500],
+    fontWeight: theme.typography.weights.semibold,
   },
   scrollView: {
     flex: 1,
   },
   imageSection: {
     position: "relative",
+    backgroundColor: theme.colors.white,
   },
   productImage: {
     width: width,
-    height: 300,
+    height: 350,
   },
   placeholderImage: {
     width: width,
-    height: 300,
-    backgroundColor: "#F3F4F6",
+    height: 350,
+    backgroundColor: theme.colors.gray[100],
     justifyContent: "center",
     alignItems: "center",
   },
   imageIndicators: {
     position: "absolute",
-    bottom: 16,
+    bottom: theme.spacing.lg,
     left: 0,
     right: 0,
     flexDirection: "row",
     justifyContent: "center",
-    gap: 8,
+    gap: theme.spacing.sm,
   },
   indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: theme.borderRadius.full,
     backgroundColor: "rgba(255, 255, 255, 0.5)",
   },
   activeIndicator: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.colors.white,
+    ...theme.shadows.small,
   },
   productInfo: {
-    backgroundColor: "#FFFFFF",
-    marginTop: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
+    backgroundColor: theme.colors.white,
+    marginTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.xxl,
+    borderTopLeftRadius: theme.borderRadius.xl,
+    borderTopRightRadius: theme.borderRadius.xl,
+    ...theme.shadows.medium,
   },
   productHeader: {
-    marginBottom: 20,
+    marginBottom: theme.spacing.xxl,
   },
   productName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 8,
+    fontSize: theme.typography.sizes["2xl"],
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.gray[800],
+    marginBottom: theme.spacing.md,
+    lineHeight: 32,
+  },
+  brandContainer: {
+    backgroundColor: theme.colors.primary[50],
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.lg,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: theme.colors.primary[200],
   },
   productBrand: {
-    fontSize: 16,
-    color: "#6B7280",
-    marginBottom: 12,
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.primary[700],
+    fontWeight: theme.typography.weights.semibold,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  priceSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: theme.spacing.md,
   },
   productPrice: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#3B82F6",
+    fontSize: theme.typography.sizes["3xl"],
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.primary[600],
+  },
+  stockBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.gray[50],
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.lg,
+    gap: theme.spacing.xs,
+  },
+  stockText: {
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
   },
   productMeta: {
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
-    paddingVertical: 16,
-    marginBottom: 24,
-    gap: 8,
+    borderColor: theme.colors.gray[100],
+    paddingVertical: theme.spacing.lg,
+    marginBottom: theme.spacing.xxl,
+    gap: theme.spacing.md,
+    backgroundColor: theme.colors.gray[50],
+    marginHorizontal: -theme.spacing.xl,
+    paddingHorizontal: theme.spacing.xl,
   },
   metaItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: theme.spacing.sm,
   },
   metaText: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.gray[600],
+    fontWeight: theme.typography.weights.medium,
   },
   descriptionSection: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.xxl,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 12,
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.gray[800],
+    marginBottom: theme.spacing.md,
   },
   description: {
-    fontSize: 16,
-    color: "#6B7280",
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.gray[600],
     lineHeight: 24,
+    fontWeight: theme.typography.weights.normal,
   },
   attributesSection: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.xxl,
   },
   attributeItem: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 8,
+    paddingVertical: theme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: theme.colors.gray[100],
   },
   attributeKey: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#6B7280",
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.gray[600],
     textTransform: "capitalize",
   },
   attributeValue: {
-    fontSize: 14,
-    color: "#1F2937",
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.gray[800],
+    fontWeight: theme.typography.weights.medium,
   },
   quantitySection: {
-    marginBottom: 20,
+    marginBottom: theme.spacing.xl,
   },
   quantityContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 20,
+    gap: theme.spacing.xl,
   },
   quantityButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#EBF4FF",
+    width: 48,
+    height: 48,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.primary[50],
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.colors.primary[200],
+    ...theme.shadows.small,
   },
   quantityText: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1F2937",
-    minWidth: 40,
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.gray[800],
+    minWidth: 60,
     textAlign: "center",
   },
   bottomActions: {
     flexDirection: "row",
-    padding: 20,
-    backgroundColor: "#FFFFFF",
+    padding: theme.spacing.xl,
+    backgroundColor: theme.colors.white,
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    gap: 12,
+    borderTopColor: theme.colors.gray[100],
+    gap: theme.spacing.md,
+    ...theme.shadows.large,
   },
   addToCartButton: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#3B82F6",
-    borderRadius: 12,
-    paddingVertical: 16,
-    gap: 8,
-  },
-  addToCartText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
+    borderRadius: theme.borderRadius.xl,
+    overflow: "hidden",
   },
   buyNowButton: {
     flex: 1,
+    borderRadius: theme.borderRadius.xl,
+    overflow: "hidden",
+  },
+  buttonContent: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#1F2937",
-    borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+  addToCartText: {
+    color: theme.colors.white,
+    fontSize: theme.typography.sizes.base,
+    fontWeight: theme.typography.weights.semibold,
   },
   buyNowText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
+    color: theme.colors.white,
+    fontSize: theme.typography.sizes.base,
+    fontWeight: theme.typography.weights.semibold,
   },
 });
 
