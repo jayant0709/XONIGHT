@@ -380,9 +380,17 @@ const HomeScreen = () => {
 
   const renderProducts = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        {selectedCategory === "All" ? "All Products" : selectedCategory}
-      </Text>
+      <View style={styles.titleContainer}>
+        <Text style={styles.featuredTitle}>
+          {selectedCategory === "All" ? "All Products" : selectedCategory}
+        </Text>
+        <View style={styles.titleUnderline} />
+        <Text style={styles.featuredSubtitle}>
+          {selectedCategory === "All"
+            ? "Explore our complete collection of premium products carefully selected for you."
+            : `Discover amazing products in ${selectedCategory} category.`}
+        </Text>
+      </View>
       <View style={styles.productsGrid}>
         {filteredProducts.map((product) => (
           <TouchableOpacity
@@ -484,17 +492,30 @@ const HomeScreen = () => {
           promotions={promotions}
           onShopNow={() => console.log("Shop now pressed")}
         />
-        {renderCategories()}
+
         <FeaturedProductsSection
           title="Featured Products"
           subtitle="Handpicked products that our customers love. Discover quality and style in every item."
-          products={filteredProducts}
+          products={filteredProducts.slice(0, 6)}
           onProductPress={(product) => router.push(`/product/${product._id}`)}
           onAddToCart={handleAddToCart}
           onToggleWishlist={handleToggleWishlist}
           isInWishlist={isInWishlist}
           showDiscount={true}
         />
+        <FeaturedProductsSection
+          title="Fashion & Lifestyle"
+          subtitle="Stay trendy with our curated collection of fashion and lifestyle products."
+          products={products.slice(6, 16)}
+          onProductPress={(product) => router.push(`/product/${product._id}`)}
+          onAddToCart={handleAddToCart}
+          onToggleWishlist={handleToggleWishlist}
+          isInWishlist={isInWishlist}
+          showDiscount={true}
+          carouselMode={true}
+        />
+        {/* {renderPromotions()} */}
+        {renderCategories()}
         {renderProducts()}
         <View style={styles.sectionSpacing}>
           <NewsletterSection
@@ -828,6 +849,33 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
     fontSize: theme.typography.sizes.xs,
     fontWeight: theme.typography.weights.semibold,
+  },
+  // Featured section title styles
+  titleContainer: {
+    alignItems: "center",
+    marginHorizontal: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
+  },
+  featuredTitle: {
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.gray[800],
+    textAlign: "center",
+    marginBottom: theme.spacing.xs,
+  },
+  titleUnderline: {
+    width: 40,
+    height: 3,
+    backgroundColor: theme.colors.primary[600],
+    borderRadius: theme.borderRadius.sm,
+    marginBottom: theme.spacing.sm,
+  },
+  featuredSubtitle: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.gray[600],
+    textAlign: "center",
+    lineHeight: 20,
+    paddingHorizontal: theme.spacing.md,
   },
 });
 

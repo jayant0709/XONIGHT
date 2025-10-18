@@ -148,6 +148,7 @@ const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
       <View style={styles.header}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{title}</Text>
+          <View style={styles.titleUnderline} />
           {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         </View>
       </View>
@@ -180,23 +181,35 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
+    alignItems: "center",
   },
   titleContainer: {
     alignItems: "center",
+    maxWidth: "100%",
   },
   title: {
-    fontSize: theme.typography.sizes["2xl"],
+    fontSize: theme.typography.sizes.xl,
     fontWeight: theme.typography.weights.bold,
     color: theme.colors.gray[800],
     textAlign: "center",
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+  },
+  titleUnderline: {
+    width: 40,
+    height: 3,
+    backgroundColor: theme.colors.primary[500],
+    borderRadius: theme.borderRadius.sm,
+    marginBottom: theme.spacing.md,
   },
   subtitle: {
-    fontSize: theme.typography.sizes.base,
-    color: theme.colors.gray[600],
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.gray[500],
     textAlign: "center",
-    lineHeight: 24,
-    maxWidth: "80%",
+    lineHeight: 18,
+    fontWeight: theme.typography.weights.normal,
+    paddingHorizontal: theme.spacing.xl,
+    maxWidth: "85%",
   },
   carouselContent: {
     paddingHorizontal: theme.spacing.lg,
