@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,8 @@ import {
 } from "../../src/contexts/OrderContext";
 import Toast from "react-native-toast-message";
 import theme from "../../src/constants/theme";
+import { automateCheckoutForm } from "../../src/utils/checkoutAutomation";
+import { automationManager } from "../../src/utils/automationManager";
 
 const CheckoutScreen = () => {
   const { state: cartState, clearCart } = useCart();
@@ -44,6 +46,22 @@ const CheckoutScreen = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [orderNotes, setOrderNotes] = useState("");
 
+  // Automation states
+  const [isAutomating, setIsAutomating] = useState(false);
+  const [automationProgress, setAutomationProgress] = useState("");
+  const [currentAutomationField, setCurrentAutomationField] = useState("");
+
+  // Refs for form fields and scroll view
+  const scrollViewRef = useRef<ScrollView>(null);
+  const fullNameRef = useRef<TextInput>(null);
+  const phoneRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+  const addressRef = useRef<TextInput>(null);
+  const cityRef = useRef<TextInput>(null);
+  const stateRef = useRef<TextInput>(null);
+  const pincodeRef = useRef<TextInput>(null);
+  const landmarkRef = useRef<TextInput>(null);
+
   // Calculate pricing (same as web app)
   const calculatePricing = (): OrderPricing => {
     const subtotal = cartState.totalPrice;
@@ -60,6 +78,68 @@ const CheckoutScreen = () => {
   };
 
   const pricing = calculatePricing();
+
+  // Check for automation on component mount
+  useEffect(() => {
+    const startAutomation = async () => {
+      if (automationManager.isAutomationActive && !isAutomating) {
+        setIsAutomating(true);
+        setAutomationProgress("Starting automation...");
+
+        try {
+          await automateCheckoutForm(
+            {
+              setFullName: (value) => updateAddressField("fullName", value),
+              setEmail: (value) => updateAddressField("email", value),
+              setPhone: (value) => updateAddressField("phone", value),
+              setAddress: (value) => updateAddressField("address", value),
+              setCity: (value) => updateAddressField("city", value),
+              setState: (value) => updateAddressField("state", value),
+              setZipCode: (value) => updateAddressField("pincode", value),
+              setCountry: (value) => {}, // Not used in this form
+            },
+            {
+              fullNameRef,
+              emailRef,
+              phoneRef,
+              addressRef,
+              cityRef,
+              stateRef,
+              pincodeRef,
+              landmarkRef,
+            },
+            scrollViewRef,
+            () => {
+              // On completion
+              setIsAutomating(false);
+              setCurrentAutomationField("");
+              setAutomationProgress("Automation complete!");
+
+              // Trigger chatbot restoration after a delay
+              setTimeout(() => {
+                automationManager.triggerRestore();
+              }, 2000);
+            },
+            (field, progress) => {
+              // On progress
+              setAutomationProgress(
+                `Filling ${field}... ${progress.toFixed(0)}%`
+              );
+              setCurrentAutomationField(
+                field.toLowerCase().replace(/\s+/g, "")
+              );
+            }
+          );
+        } catch (error) {
+          console.error("Automation failed:", error);
+          setIsAutomating(false);
+          setAutomationProgress("Automation failed");
+        }
+      }
+    };
+
+    startAutomation();
+  }, []);
 
   // Validate form
   const validateForm = (): boolean => {
@@ -187,6 +267,19 @@ const CheckoutScreen = () => {
     }
   };
 
+  // Get automation highlight style
+  const getAutomationStyle = (fieldName: string) => {
+    if (isAutomating && currentAutomationField === fieldName.toLowerCase()) {
+      return {
+        borderColor: theme.colors.primary[500],
+        borderWidth: 2,
+        backgroundColor: theme.colors.primary[50],
+        ...theme.shadows.small,
+      };
+    }
+    return {};
+  };
+
   // Check if cart is empty
   if (cartState.items.length === 0) {
     return (
@@ -244,7 +337,20 @@ const CheckoutScreen = () => {
         <Text style={styles.headerTitle}>Checkout</Text>
       </LinearGradient>
 
+      {/* Automation Status */}
+      {isAutomating && (
+        <View style={styles.automationStatus}>
+          <ActivityIndicator
+            size="small"
+            color={theme.colors.primary[500]}
+            style={styles.automationSpinner}
+          />
+          <Text style={styles.automationText}>🤖 {automationProgress}</Text>
+        </View>
+      )}
+
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
@@ -274,11 +380,17 @@ const CheckoutScreen = () => {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Full Name *</Text>
               <TextInput
-                style={[styles.textInput, errors.fullName && styles.inputError]}
+                ref={fullNameRef}
+                style={[
+                  styles.textInput,
+                  errors.fullName && styles.inputError,
+                  getAutomationStyle("fullname"),
+                ]}
                 value={deliveryAddress.fullName}
                 onChangeText={(text) => updateAddressField("fullName", text)}
                 placeholder="Enter your full name"
                 placeholderTextColor={theme.colors.gray[400]}
+                editable={!isAutomating}
               />
               {errors.fullName && (
                 <Text style={styles.errorText}>{errors.fullName}</Text>
@@ -288,13 +400,19 @@ const CheckoutScreen = () => {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Phone Number *</Text>
               <TextInput
-                style={[styles.textInput, errors.phone && styles.inputError]}
+                ref={phoneRef}
+                style={[
+                  styles.textInput,
+                  errors.phone && styles.inputError,
+                  getAutomationStyle("phone"),
+                ]}
                 value={deliveryAddress.phone}
                 onChangeText={(text) => updateAddressField("phone", text)}
                 placeholder="Enter 10-digit phone number"
                 placeholderTextColor={theme.colors.gray[400]}
                 keyboardType="phone-pad"
                 maxLength={10}
+                editable={!isAutomating}
               />
               {errors.phone && (
                 <Text style={styles.errorText}>{errors.phone}</Text>
@@ -304,22 +422,26 @@ const CheckoutScreen = () => {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Email (Optional)</Text>
               <TextInput
-                style={styles.textInput}
+                ref={emailRef}
+                style={[styles.textInput, getAutomationStyle("email")]}
                 value={deliveryAddress.email}
                 onChangeText={(text) => updateAddressField("email", text)}
                 placeholder="Enter email address"
                 placeholderTextColor={theme.colors.gray[400]}
                 keyboardType="email-address"
+                editable={!isAutomating}
               />
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Address *</Text>
               <TextInput
+                ref={addressRef}
                 style={[
                   styles.textInput,
                   styles.textArea,
                   errors.address && styles.inputError,
+                  getAutomationStyle("address"),
                 ]}
                 value={deliveryAddress.address}
                 onChangeText={(text) => updateAddressField("address", text)}
@@ -327,6 +449,7 @@ const CheckoutScreen = () => {
                 placeholderTextColor={theme.colors.gray[400]}
                 multiline
                 numberOfLines={3}
+                editable={!isAutomating}
               />
               {errors.address && (
                 <Text style={styles.errorText}>{errors.address}</Text>
@@ -337,11 +460,17 @@ const CheckoutScreen = () => {
               <View style={[styles.inputGroup, styles.flex1]}>
                 <Text style={styles.inputLabel}>City *</Text>
                 <TextInput
-                  style={[styles.textInput, errors.city && styles.inputError]}
+                  ref={cityRef}
+                  style={[
+                    styles.textInput,
+                    errors.city && styles.inputError,
+                    getAutomationStyle("city"),
+                  ]}
                   value={deliveryAddress.city}
                   onChangeText={(text) => updateAddressField("city", text)}
                   placeholder="City"
                   placeholderTextColor={theme.colors.gray[400]}
+                  editable={!isAutomating}
                 />
                 {errors.city && (
                   <Text style={styles.errorText}>{errors.city}</Text>
@@ -353,9 +482,11 @@ const CheckoutScreen = () => {
               >
                 <Text style={styles.inputLabel}>Pincode *</Text>
                 <TextInput
+                  ref={pincodeRef}
                   style={[
                     styles.textInput,
                     errors.pincode && styles.inputError,
+                    getAutomationStyle("zipcode"),
                   ]}
                   value={deliveryAddress.pincode}
                   onChangeText={(text) => updateAddressField("pincode", text)}
@@ -363,6 +494,7 @@ const CheckoutScreen = () => {
                   placeholderTextColor={theme.colors.gray[400]}
                   keyboardType="numeric"
                   maxLength={6}
+                  editable={!isAutomating}
                 />
                 {errors.pincode && (
                   <Text style={styles.errorText}>{errors.pincode}</Text>
@@ -373,11 +505,17 @@ const CheckoutScreen = () => {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>State *</Text>
               <TextInput
-                style={[styles.textInput, errors.state && styles.inputError]}
+                ref={stateRef}
+                style={[
+                  styles.textInput,
+                  errors.state && styles.inputError,
+                  getAutomationStyle("state"),
+                ]}
                 value={deliveryAddress.state}
                 onChangeText={(text) => updateAddressField("state", text)}
                 placeholder="Enter state"
                 placeholderTextColor={theme.colors.gray[400]}
+                editable={!isAutomating}
               />
               {errors.state && (
                 <Text style={styles.errorText}>{errors.state}</Text>
@@ -387,6 +525,7 @@ const CheckoutScreen = () => {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Landmark (Optional)</Text>
               <TextInput
+                ref={landmarkRef}
                 style={styles.textInput}
                 value={deliveryAddress.landmark}
                 onChangeText={(text) => updateAddressField("landmark", text)}
@@ -705,6 +844,28 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.base,
     fontWeight: theme.typography.weights.semibold,
     color: theme.colors.white,
+  },
+  // Automation status styles
+  automationStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.primary[50],
+    marginHorizontal: theme.spacing.lg,
+    marginTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.primary[200],
+  },
+  automationSpinner: {
+    marginRight: theme.spacing.sm,
+  },
+  automationText: {
+    flex: 1,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.primary[700],
   },
 });
 

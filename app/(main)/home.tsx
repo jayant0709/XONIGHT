@@ -28,6 +28,7 @@ import FeaturedProductsSection from "../../src/components/FeaturedProductsSectio
 import NewsletterSection from "../../src/components/NewsletterSection";
 import Chatbot from "../../src/components/Chatbot";
 import ChatbotFloatingButton from "../../src/components/ChatbotFloatingButton";
+import { automationManager } from "../../src/utils/automationManager";
 
 interface Product {
   _id: string;
@@ -69,6 +70,9 @@ const HomeScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
+  const [chatbotRestoreFunction, setChatbotRestoreFunction] = useState<
+    (() => void) | null
+  >(null);
 
   useEffect(() => {
     loadData();
@@ -543,6 +547,13 @@ const HomeScreen = () => {
         isVisible={isChatbotVisible}
         onClose={() => setIsChatbotVisible(false)}
         onAddToCart={handleAddToCart}
+        onStartAutomation={() => {
+          automationManager.startAutomation();
+        }}
+        onRestoreChatbot={(restoreFunction) => {
+          setChatbotRestoreFunction(() => restoreFunction);
+          automationManager.setRestoreFunction(restoreFunction);
+        }}
       />
     </SafeAreaView>
   );

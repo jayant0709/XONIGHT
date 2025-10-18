@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -57,6 +57,9 @@ interface ChatbotProps {
   isVisible: boolean;
   onClose: () => void;
   onAddToCart?: (product: any) => void;
+  onMinimize?: () => void;
+  onStartAutomation?: () => void;
+  onRestoreChatbot?: (restoreFunction: () => void) => void;
 }
 
 const { width, height } = Dimensions.get("window");
@@ -65,11 +68,15 @@ const Chatbot: React.FC<ChatbotProps> = ({
   isVisible,
   onClose,
   onAddToCart,
+  onMinimize,
+  onStartAutomation,
+  onRestoreChatbot,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const typingAnimation = useRef(new Animated.Value(0)).current;
 
@@ -321,13 +328,17 @@ const Chatbot: React.FC<ChatbotProps> = ({
       switch (action) {
         case "checkout":
           addMessage(
-            "Perfect! Let me take you to checkout. You can review your items and complete your purchase there. 🛒",
+            "Perfect! I'll minimize myself and help you fill out the checkout form automatically. Watch the magic! ✨",
             false
           );
           setTimeout(() => {
-            onClose();
+            // Minimize the chatbot and start automation
+            setIsMinimized(true);
             router.push("/checkout");
-          }, 1000);
+            if (onStartAutomation) {
+              onStartAutomation();
+            }
+          }, 1500);
           break;
 
         case "view_cart":
@@ -378,6 +389,34 @@ const Chatbot: React.FC<ChatbotProps> = ({
         return "Continue shopping";
     }
   };
+
+  const restoreFromMinimized = useCallback(() => {
+    setIsMinimized(false);
+    addMessage(
+      "Great! I've filled out your address details. Now let's proceed with payment options. Would you like to continue? 💳",
+      false,
+      undefined,
+      [
+        {
+          id: "continue_payment",
+          text: "💳 Continue to Payment",
+          action: "continue_payment",
+        },
+        {
+          id: "review_details",
+          text: "📝 Review Details",
+          action: "review_details",
+        },
+      ]
+    );
+  }, []);
+
+  // Pass restore function to parent component
+  useEffect(() => {
+    if (onRestoreChatbot) {
+      onRestoreChatbot(restoreFromMinimized);
+    }
+  }, [onRestoreChatbot, restoreFromMinimized]);
 
   const handleAddToCart = (product: any) => {
     if (onAddToCart) {
@@ -528,6 +567,43 @@ const Chatbot: React.FC<ChatbotProps> = ({
       </View>
     );
   };
+
+  // Render minimized chatbot bar
+  if (isMinimized) {
+    return (
+      <Modal
+        visible={isVisible}
+        animationType="none"
+        transparent={true}
+        onRequestClose={onClose}
+      >
+        <View style={styles.minimizedContainer}>
+          <TouchableOpacity
+            style={styles.minimizedBar}
+            onPress={restoreFromMinimized}
+          >
+            <View style={styles.minimizedContent}>
+              <View style={styles.minimizedIcon}>
+                <Ionicons
+                  name="chatbubble-ellipses"
+                  size={16}
+                  color={theme.colors.white}
+                />
+              </View>
+              <Text style={styles.minimizedText}>
+                🤖 Filling checkout details...
+              </Text>
+              <View style={styles.minimizedProgress}>
+                <Animated.View
+                  style={[styles.progressBar, { opacity: typingAnimation }]}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -870,6 +946,54 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.medium,
     textAlign: "center",
+  },
+  // Minimized chatbot styles
+  minimizedContainer: {
+    position: "absolute",
+    top: 50,
+    left: theme.spacing.md,
+    right: theme.spacing.md,
+    zIndex: 1000,
+  },
+  minimizedBar: {
+    backgroundColor: theme.colors.primary[500],
+    borderRadius: theme.borderRadius.xl,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    ...theme.shadows.medium,
+    elevation: 5,
+  },
+  minimizedContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+  },
+  minimizedIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  minimizedText: {
+    flex: 1,
+    color: theme.colors.white,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
+  },
+  minimizedProgress: {
+    width: 30,
+    height: 3,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressBar: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: theme.colors.white,
+    borderRadius: 2,
   },
 });
 
